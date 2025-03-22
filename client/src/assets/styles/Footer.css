@@ -1,0 +1,85 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
+.footer {
+    position: relative;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #1a1a1a !important;
+    color: #d1d1d1;
+    padding: 20px 40px;
+    font-family: "Poppins", sans-serif;
+    font-size: 16px;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    z-index: 50;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.newsletter {
+    display: flex;
+    gap: 10px;
+}
+
+.email-input {
+    padding: 10px 16px;
+    border: 2px solid #00ceff;
+    border-radius: 30px;
+    font-size: 16px;
+    font-family: "Poppins", sans-serif;
+    outline: none;
+    transition: 0.3s ease-in-out;
+    background-color: white;
+    color: black;
+}
+
+.email-input:focus {
+    border-color: #0084a5;
+}
+
+.subscribe-btn {
+    background: linear-gradient(135deg, #00ceff, #0051cb);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    font-family: "Poppins", sans-serif;
+}
+
+.subscribe-btn:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #0084a5, #003b99);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+.social-links {
+    display: flex;
+    gap: 15px;
+}
+
+.social-icon {
+    font-size: 32px;
+    color: white;
+    transition: transform 0.3s ease-in-out;
+}
+
+.social-icon:hover {
+    transform: scale(1.1);
+}
+
+.copyright {
+    font-size: 14px;
+    white-space: nowrap;
+}
