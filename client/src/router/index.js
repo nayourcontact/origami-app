@@ -1,22 +1,16 @@
-import {createRouter, createWebHistory} from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import Home from "../views/Home.vue";
 import Gallery from "../views/Gallery.vue";
 import Tutorial from "../views/Tutorial.vue";
 import Order from "../views/Order.vue";
 import NotFound from "../views/NotFound.vue";
-import {t} from "../locales";
+import { t } from "../locales";
 
-const getSavedLanguage = () => localStorage.getItem("language") || "hu";
+const getSavedLanguage = () =>
+    localStorage.getItem("language") ||
+    (navigator.language.startsWith("en") ? "en" : "hu");
 
 const routes = [
-    {
-        path: "/",
-        redirect: () => `/${getSavedLanguage()}/home`,
-    },
-    {
-        path: "/:lang(hu|en)",
-        redirect: "/:lang/home",
-    },
     {
         path: "/:lang(hu|en)/home",
         component: Home,
@@ -49,32 +43,41 @@ const routes = [
             description: (lang) => t(lang, "orderDescription"),
         },
     },
+    // NotFound nyelvi prefixszel
     {
         path: "/:lang(hu|en)/:pathMatch(.*)*",
         component: NotFound,
-        meta: {
-            title: (lang) => t(lang, "notFoundTitle"),
-            description: (lang) => t(lang, "notFoundDescription"),
-        },
     },
+    // NotFound nyelv nélkül (pl. ha valaki /valami-t ír be)
     {
         path: "/:pathMatch(.*)*",
-        redirect: `/${getSavedLanguage()}/home`,
-    },
+        component: NotFound,
+    }
 ];
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHashHistory(), // ⬅️ EZ a változtatás
     routes,
 });
 
 router.beforeEach((to, from, next) => {
-    const lang = to.params.lang || getSavedLanguage();
+    console.log("Navigating to:", to.fullPath);
+    console.log("Route params:", to.params);
 
-    document.title = typeof to.meta.title === "function" ? to.meta.title(lang) : "Origami Alfredo";
+    const lang = to.params.lang;
+
+    if (!lang || !['hu', 'en'].includes(lang)) {
+        console.log("Invalid or missing lang param, skipping redirect.");
+        return next({ path: '/hu/home' });
+    }
+
+    document.title =
+        typeof to.meta.title === "function" ? to.meta.title(lang) : "Origami Alfredo";
 
     const description =
-        typeof to.meta.description === "function" ? to.meta.description(lang) : "Origami művészet, oktatóanyagok és galéria.";
+        typeof to.meta.description === "function"
+            ? to.meta.description(lang)
+            : "Origami művészet, oktatóanyagok és galéria.";
 
     updateMetaTag("description", description);
     updateMetaTag("og:title", document.title);
@@ -82,15 +85,13 @@ router.beforeEach((to, from, next) => {
     updateMetaTag("twitter:title", document.title);
     updateMetaTag("twitter:description", description);
 
-    if (to.params.lang) {
-        localStorage.setItem("language", to.params.lang);
-    }
-
     next();
 });
 
 function updateMetaTag(name, content) {
-    let tag = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`);
+    let tag =
+        document.querySelector(`meta[name="${name}"]`) ||
+        document.querySelector(`meta[property="${name}"]`);
 
     if (!tag) {
         tag = document.createElement("meta");

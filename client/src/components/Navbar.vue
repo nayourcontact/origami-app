@@ -34,7 +34,6 @@
 import {ref, computed, onMounted} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {t} from "../locales";
-import BaseButton from "../components/BaseButton.vue";
 import "@fortawesome/fontawesome-free/css/all.css";
 import "../assets/styles/Navbar.css";
 

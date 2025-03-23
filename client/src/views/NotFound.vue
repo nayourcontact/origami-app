@@ -2,9 +2,14 @@
     <div class="not-found">
       <h1>404</h1>
       <p>{{ t(language, "notFoundMessage") }}</p>
-      <RouterLink :to="`/${language}/home`" class="home-btn">
+      <BaseButton
+          variant="outline"
+          class="home-btn"
+          @click="goHome"
+      >
         {{ t(language, "backHome") }}
-      </RouterLink>
+      </BaseButton>
+
     </div>
   </template>
   
@@ -30,4 +35,9 @@
       }
     }
   );
+
+  const goHome = () => {
+    router.push(`/${language.value}/home`);
+  };
+
   </script>

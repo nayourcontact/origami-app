@@ -1,19 +1,28 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const path = require('path');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
 dotenv.config();
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error("MongoDB connection error:", err));
+// Statikus fájlok kiszolgálása a Vue buildből
+const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+app.use(express.static(clientDistPath));
 
-app.get("/", (req, res) => {
-  res.send("API is running...");
+// API endpoint például
+// app.use('/api', require('./routes/yourRoutes'));
+
+// Fallback minden másra: index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientDistPath, 'index.html'));
 });
 
-app.listen(5000, () => console.log("Server running on port 5000"));
+// Szerver indítása
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Szerver fut a http://localhost:${PORT} címen`);
+});

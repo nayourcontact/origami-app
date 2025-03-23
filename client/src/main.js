@@ -1,6 +1,10 @@
-import { createApp } from 'vue'
+import {createApp} from 'vue'
 import './style.css'
 import App from './App.vue'
 import router from './router'
+import BaseButton from './components/BaseButton.vue';
 
-createApp(App).use(router).mount('#app')
+createApp(App)
+    .component('BaseButton', BaseButton)
+    .use(router)
+    .mount('#app');

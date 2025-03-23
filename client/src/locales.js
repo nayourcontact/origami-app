@@ -20,7 +20,8 @@ const translations = {
       galleryTooltip: "Nézd meg a galériát",
       tutorialTooltip: "Tanulj meg origamizni",
       orderTooltip: "Vásárlás és rendelés",
-      toggleLanguage: "Váltás magyar és angol között"
+      toggleLanguage: "Váltás magyar és angol között",
+      subscribeTooltip: "Iratkozz fel a hírlevélre"
     },
     en: {
       home: "Home",
@@ -43,7 +44,8 @@ const translations = {
       galleryTooltip: "Check out the gallery",
       tutorialTooltip: "Learn origami",
       orderTooltip: "Shop and order",
-      toggleLanguage: "Switch between Hungarian and English"
+      toggleLanguage: "Switch between Hungarian and English",
+      subscribeTooltip: "Subscribe to our newsletter"
     },
   };
   

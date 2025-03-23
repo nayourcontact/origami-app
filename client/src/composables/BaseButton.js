@@ -1,56 +1,50 @@
-import { computed, defineProps, defineEmits, ref } from "vue";
-import { useRoute } from "vue-router";
-import { t } from "../locales";
+import {computed, ref} from "vue";
+import {t} from "../locales";
+import {useRoute} from "vue-router";
 
-export function BaseButton() {
-    const props = defineProps({
-        variant: { type: String, default: "primary" },
-        size: { type: String, default: "sm" },
-        icon: { type: String, default: "" },
-        fullWidth: { type: Boolean, default: false },
-        disabled: { type: Boolean, default: false },
-        tooltip: { type: String, default: "" },
-    });
-
-    const emit = defineEmits(["click"]);
+export function useBaseButton(props, emit) {
     const showTooltip = ref(false);
     const route = useRoute();
-
     const currentLanguage = computed(() => route.params.lang || "hu");
 
     const hasLabel = computed(() => !!props.tooltip || !!props.icon);
 
     const handleClick = () => {
-        if (!props.disabled) emit("click");
+        if (!props.disabled && !props.loading) emit("click");
     };
 
     const translatedTooltip = computed(() =>
         props.tooltip ? t(currentLanguage.value, props.tooltip) : ""
     );
 
-    const variantClass = computed(() => ({
-        primary: "bg-transparent text-gray-800 hover:bg-gray-200",
-        secondary: "bg-transparent text-gray-900 hover:bg-gray-300",
-        outline: "bg-transparent text-gray-700 border border-transparent hover:bg-gray-400 hover:text-white",
-        gradient: "bg-transparent text-gray-900 hover:bg-gray-200",
-    }[props.variant] || "text-gray-800 hover:bg-gray-200"));
+    const variantClass = computed(() =>
+        ({
+            primary: "bg-blue-600 text-white hover:bg-blue-700",
+            secondary: "bg-gray-100 text-gray-800 hover:bg-gray-200",
+            outline: "border border-gray-300 text-gray-700 hover:bg-gray-100",
+            gradient: "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90",
+        }[props.variant] || "bg-blue-600 text-white hover:bg-blue-700")
+    );
 
-    const sizeClass = computed(() => ({
-        sm: "px-3 py-2 text-sm",
-        md: "px-4 py-2 text-base",
-        lg: "px-5 py-3 text-lg",
-    }[props.size] || "px-4 py-2 text-base"));
+    const sizeClass = computed(() =>
+        ({
+            sm: "px-3 py-2 text-sm",
+            md: "px-4 py-2 text-base",
+            lg: "px-5 py-3 text-lg",
+        }[props.size] || "px-4 py-2 text-base")
+    );
 
     return {
-        variantClass,
-        sizeClass,
+        icon: props.icon,
         fullWidth: props.fullWidth,
         disabled: props.disabled,
-        icon: props.icon,
         tooltip: props.tooltip,
-        translatedTooltip,
-        hasLabel,
-        handleClick,
+        loading: props.loading,
         showTooltip,
+        hasLabel,
+        translatedTooltip,
+        variantClass,
+        sizeClass,
+        handleClick,
     };
 }

@@ -2,8 +2,19 @@
   <footer class="footer">
     <div class="footer-content">
       <div class="newsletter">
-        <input type="email" :placeholder="t(currentLanguage, 'newsletterPlaceholder')" class="email-input" />
-        <button class="subscribe-btn">{{ t(currentLanguage, 'subscribe') }}</button>
+        <input type="email" :placeholder="t(currentLanguage, 'newsletterPlaceholder')" class="email-input"/>
+        <BaseButton
+            variant="gradient"
+            size="sm"
+            :tooltip="t(currentLanguage, 'subscribeTooltip')"
+            @click="handleSubscribe"
+        >
+          <template #icon>
+            <i class="fas fa-paper-plane text-white"></i>
+          </template>
+          {{ t(currentLanguage, 'subscribe') }}
+        </BaseButton>
+
       </div>
 
       <div class="social-links">
@@ -21,12 +32,18 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
-import { useRoute } from "vue-router";
-import { t } from "../locales";
+import {computed} from "vue";
+import {useRoute} from "vue-router";
+import {t} from "../locales";
 import "@fortawesome/fontawesome-free/css/all.css";
 import "../assets/styles/Footer.css";
 
 const route = useRoute();
 const currentLanguage = computed(() => route.params.lang || "hu");
+
+const handleSubscribe = () => {
+  // Itt kezelheted az email beküldést
+  console.log("Feliratkozás gombra kattintva");
+};
+
 </script>
