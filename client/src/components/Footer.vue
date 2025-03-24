@@ -24,6 +24,9 @@
         <a href="https://www.threads.net/@origamialfredo" target="_blank">
           <i class="fab fa-threads social-icon"></i>
         </a>
+        <a href="https://www.facebook.com/alfred.takacs" target="_blank">
+          <i class="fab fa-facebook social-icon"></i>
+        </a>
       </div>
 
       <p class="copyright">© 2025 origamialfredo | {{ t(currentLanguage, 'footerText') }}</p>

@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted} from "vue";
+import {computed, onMounted} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {t} from "../locales";
 import "@fortawesome/fontawesome-free/css/all.css";
@@ -51,7 +51,15 @@ const navLinks = [
 ];
 
 const handleNavigation = (path) => {
-  router.push(`/${language.value}${path}`);
+  const targetPath = `/${language.value}${path.startsWith("/") ? path : "/" + path}`;
+  if (router.currentRoute.value.path !== targetPath) {
+    router.push(targetPath);
+  } else {
+    // workaround: force re-render
+    router.replace("/__refresh").then(() => {
+      router.replace(targetPath);
+    });
+  }
 };
 
 const toggleLanguage = () => {

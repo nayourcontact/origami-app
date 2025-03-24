@@ -1,16 +1,23 @@
-import { createRouter, createWebHashHistory } from "vue-router";
+import {createRouter, createWebHashHistory} from "vue-router";
 import Home from "../views/Home.vue";
 import Gallery from "../views/Gallery.vue";
 import Tutorial from "../views/Tutorial.vue";
 import Order from "../views/Order.vue";
 import NotFound from "../views/NotFound.vue";
-import { t } from "../locales";
+import {t} from "../locales";
 
 const getSavedLanguage = () =>
     localStorage.getItem("language") ||
     (navigator.language.startsWith("en") ? "en" : "hu");
 
 const routes = [
+    {
+        path: "/",
+        redirect: () => {
+            const savedLang = getSavedLanguage();
+            return `/${savedLang}/home`;
+        },
+    },
     {
         path: "/:lang(hu|en)/home",
         component: Home,
@@ -43,12 +50,10 @@ const routes = [
             description: (lang) => t(lang, "orderDescription"),
         },
     },
-    // NotFound nyelvi prefixszel
     {
         path: "/:lang(hu|en)/:pathMatch(.*)*",
         component: NotFound,
     },
-    // NotFound nyelv nélkül (pl. ha valaki /valami-t ír be)
     {
         path: "/:pathMatch(.*)*",
         component: NotFound,
@@ -61,14 +66,11 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    console.log("Navigating to:", to.fullPath);
-    console.log("Route params:", to.params);
-
     const lang = to.params.lang;
 
     if (!lang || !['hu', 'en'].includes(lang)) {
         console.log("Invalid or missing lang param, skipping redirect.");
-        return next({ path: '/hu/home' });
+        return next({path: '/hu/home'});
     }
 
     document.title =
