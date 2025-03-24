@@ -1,4 +1,5 @@
-import {ref} from "vue";
+import {ref, onMounted} from "vue";
+import axios from "axios";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import Lenis from "@studio-freight/lenis";
@@ -14,6 +15,7 @@ export const images = ref([image1, image2, image3, image4, image5, image6]);
 export const intro = ref(null);
 export const gallery = ref(null);
 export const scrollContainer = ref(null);
+export const bio = ref("Travel with me to the World of Origami!");
 
 export function initAnimations({intro, gallery}) {
     gsap.registerPlugin(ScrollTrigger);
@@ -51,4 +53,13 @@ export function initAnimations({intro, gallery}) {
     });
 
      */
+}
+
+export async function initBio() {
+    try {
+        const res = await axios.get("http://localhost:3000/api/instagram-profile");
+        bio.value = res.data.biography || bio.value;
+    } catch (err) {
+        console.error("Nem sikerült lekérni az Instagram bio-t:", err);
+    }
 }
