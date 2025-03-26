@@ -1,17 +1,12 @@
-import {ref, onMounted} from "vue";
+import {ref} from "vue";
 import axios from "axios";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import Lenis from "@studio-freight/lenis";
+import {API_BASE_URL, INSTAGRAM_USER_ID} from "../config.js";
 
-import image1 from "../assets/images/481380548_1011302577517671_6178661449282385340_n.jpg";
-import image2 from "../assets/images/481507709_554499343609416_3607355746556796657_n.jpg";
-import image3 from "../assets/images/481686935_1700172133905983_1229115931246108137_n.jpg";
-import image4 from "../assets/images/482523521_1394755978360160_8678528952687149298_n.jpg";
-import image5 from "../assets/images/482601024_3910660735848857_6359899532700799832_n.jpg";
-import image6 from "../assets/images/482729694_1453345856038176_4180568950418028172_n.jpg";
-
-export const images = ref([image1, image2, image3, image4, image5, image6]);
+export const introImage = ref(null);
+export const posts = ref(null);
 export const intro = ref(null);
 export const gallery = ref(null);
 export const scrollContainer = ref(null);
@@ -57,9 +52,30 @@ export function initAnimations({intro, gallery}) {
 
 export async function initBio() {
     try {
-        const res = await axios.get("http://localhost:3000/api/instagram-profile");
-        bio.value = res.data.biography || bio.value;
+        const res = await axios.get(`${API_BASE_URL}/api/biography/${INSTAGRAM_USER_ID}`);
+        bio.value = res.data?.user?.biography || '';
     } catch (err) {
-        console.error("Nem sikerült lekérni az Instagram bio-t:", err);
+        console.error("Could not retrieve the Instagram bio:", err);
     }
 }
+
+export async function initNewPosts() {
+    try {
+        const res = await axios.get(`${API_BASE_URL}/api/posts/${INSTAGRAM_USER_ID}`);
+        const allPosts = res.data?.posts || [];
+        posts.value = allPosts
+            .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+            .slice(0, 6);
+
+        const icarCaption = `Icar (Ίκαρος)`;
+        const icarPost = allPosts.find(
+            (post) => post.caption?.includes(icarCaption)
+        );
+        if (icarPost) {
+            introImage.value = icarPost.mediaUrl;
+        }
+    } catch (err) {
+        console.error("Could not retrieve the latest Instagram posts:", err);
+    }
+}
+
