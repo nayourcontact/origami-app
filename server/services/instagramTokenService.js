@@ -74,6 +74,7 @@ const refreshInstagramToken = async (userId) => {
         // Calculate new expiry date
         const expiresAt = new Date(Date.now() + expires_in * 1000);
 
+
         // Save the new token
         await saveToken({
             token: access_token,

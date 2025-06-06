@@ -11,7 +11,13 @@ export default {
             locale: "hu",
             selectedLocale: "hu",
             languageModalOpen: false,
-            saving: false
+            saving: false,
+            activeTab: 'token',
+            newToken: '',
+            newClientSecret: '',
+            saveTokenMessage: '',
+            tokenModalOpen: false,
+            gdprTable: []
         };
     },
     computed: {
@@ -116,6 +122,85 @@ export default {
                 hour: '2-digit',
                 minute: '2-digit'
             });
+        },
+        async saveNewToken() {
+            if (!this.newToken || !this.newClientSecret) {
+                window.showToast?.("Token és Client Secret megadása kötelező.", "error");
+                return;
+            }
+
+            try {
+                const validation = await api.get(`${API_BASE_URL}/api/token/validate/${INSTAGRAM_USER_ID}`);
+                if (!validation.data.valid) {
+                    window.showToast?.("A token érvénytelen: " + validation.data.error, "error");
+                    return;
+                }
+
+                const refresh = await api.post(`${API_BASE_URL}/api/token/refresh`, {
+                    userId: INSTAGRAM_USER_ID
+                });
+
+                const expiresAt = refresh.data?.expiresAt;
+
+                await api.post(`${API_BASE_URL}/api/token`, {
+                    token: this.newToken,
+                    clientSecret: this.newClientSecret,
+                    userId: INSTAGRAM_USER_ID,
+                    expiresAt
+                });
+
+                this.saveTokenMessage = "Token sikeresen frissítve!";
+                this.newToken = '';
+                this.newClientSecret = '';
+                this.fetchStatus(); // frissítjük a UI-t is
+            } catch (err) {
+                console.error("Token mentés hiba:", err);
+                window.showToast?.("Hiba történt a mentés során.", "error");
+            }
+        },
+        downloadCSV() {
+            const headers = [
+                "Adatkezelés célja",
+                "Jogalap",
+                "Adatok típusa",
+                "Kezelt adatok forrása",
+                "Címzettek",
+                "Tárolás ideje",
+                "Tárolás helye",
+                "Biztonsági intézkedések"
+            ];
+
+            const rows = this.gdprTable.map(r =>
+                [
+                    r.purpose,
+                    r.legal,
+                    r.dataType,
+                    r.source,
+                    r.recipient,
+                    r.duration,
+                    r.location,
+                    r.security
+                ].map(cell => `"${cell}"`).join(',')
+            );
+
+            // UTF-8 BOM hozzáadása (\uFEFF)
+            const bom = '\uFEFF';
+            const csvContent = bom + [headers.join(','), ...rows].join('\n');
+
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "gdpr_nyilvantartas.csv";
+            link.click();
+        },
+        async fetchGdprData() {
+            try {
+                const res = await api.get(`${API_BASE_URL}/api/admin/gdpr-export`);
+                this.gdprTable = res.data;
+            } catch (err) {
+                console.error("GDPR adatok betöltése sikertelen:", err);
+                window.showToast?.("Nem sikerült betölteni a GDPR adatokat.", "error");
+            }
         }
     },
     mounted() {
@@ -125,5 +210,12 @@ export default {
     },
     beforeUnmount() {
         window.removeEventListener("beforeunload", this.preventLeave);
+    },
+    watch: {
+        activeTab(val) {
+            if (val === "gdprExport") {
+                this.fetchGdprData();
+            }
+        }
     }
 };

@@ -1,8 +1,7 @@
 const crypto = require("crypto");
 const Subscriber = require("../models/Subscriber");
+const VerificationCode = require("../models/VerificationCode");
 const {sendConfirmationEmail} = require("./emailService");
-
-const verificationCodes = new Map();
 
 function generateCode() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -18,9 +17,7 @@ function encryptEmail(email) {
         const iv = Buffer.from(process.env.EMAIL_ENCRYPTION_IV, 'hex');
 
         if (key.length !== 32 || iv.length !== 16) {
-            const error = new Error("Encryption configuration invalid");
-            error.statusCode = 500;
-            throw error;
+            throw new Error("Encryption configuration invalid");
         }
 
         const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
@@ -29,9 +26,7 @@ function encryptEmail(email) {
         return encrypted;
     } catch (err) {
         console.error("[ENCRYPT EMAIL ERROR]:", err.message);
-        const error = new Error("Failed to encrypt email");
-        error.statusCode = 500;
-        throw error;
+        throw new Error("Failed to encrypt email");
     }
 }
 
@@ -42,54 +37,58 @@ exports.sendCode = async (email) => {
         const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         if (!isValid) return {status: 400, message: "Invalid email format."};
 
+        const emailHash = hashEmail(email);
+        const alreadySubscribed = await Subscriber.findOne({emailHash});
+        if (alreadySubscribed) return {status: 409, message: "Email already subscribed."};
+
         const code = generateCode();
-        verificationCodes.set(email, {
-            code,
-            expiresAt: Date.now() + 10 * 60 * 1000,
-        });
+
+        await VerificationCode.findOneAndUpdate(
+            {emailHash},
+            {code, expiresAt: new Date(Date.now() + 10 * 60 * 1000)},
+            {upsert: true}
+        );
 
         await sendConfirmationEmail(email, code);
         return {status: 200, message: "Verification code sent."};
     } catch (err) {
         console.error("[SEND CODE ERROR]:", err.message);
-        const error = new Error("Failed to send verification code.");
-        error.statusCode = 500;
-        throw error;
+        throw new Error("Failed to send verification code.");
     }
 };
 
 exports.verifyAndSubscribe = async (email, code) => {
     try {
-        if (!email || !code) {
-            return {status: 400, message: "Email and code are required."};
-        }
-
-        const entry = verificationCodes.get(email);
-        if (!entry) return {status: 400, message: "No verification code found for this email."};
-        if (entry.expiresAt < Date.now()) return {status: 400, message: "Verification code expired."};
-        if (entry.code !== code.toUpperCase()) return {status: 400, message: "Invalid verification code."};
+        if (!email || !code) return {status: 400, message: "Email and code are required."};
 
         const emailHash = hashEmail(email);
-        const emailEncrypted = encryptEmail(email);
+        const record = await VerificationCode.findOne({emailHash});
 
+        if (!record) return {status: 400, message: "No verification code found for this email."};
+        if (record.expiresAt < new Date()) return {status: 400, message: "Verification code expired."};
+        if (record.code !== code.toUpperCase()) return {status: 400, message: "Invalid verification code."};
+
+        const emailEncrypted = encryptEmail(email);
         const existing = await Subscriber.findOne({emailHash});
+
         if (existing) return {status: 409, message: "Email already subscribed."};
 
-        const subscriber = new Subscriber({
+        await new Subscriber({
             emailHash,
             emailEncrypted,
             confirmed: true,
-            subscribedAt: new Date(),
-        });
-        await subscriber.save();
+            subscribedAt: new Date()
+        }).save();
 
-        verificationCodes.delete(email);
+        await VerificationCode.deleteOne({emailHash});
 
         return {status: 201, message: "Successfully subscribed!"};
     } catch (err) {
         console.error("[SUBSCRIBE ERROR]:", err.message);
-        const error = new Error("Subscription process failed.");
-        error.statusCode = 500;
-        throw error;
+        throw new Error("Subscription process failed.");
     }
+};
+
+exports.getAll = async () => {
+    return await Subscriber.find({}).lean();
 };

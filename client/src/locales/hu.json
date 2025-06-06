@@ -65,14 +65,14 @@
     "<strong>Gyűjtött adatok:</strong><ul><li>Hírlevél: e-mail cím</li><li>Megrendelés: név, e-mail cím, megrendelés tartalma, megjegyzés (opcionális)</li></ul>",
     "<strong>Adatkezelés célja:</strong><ul><li>Hírlevél küldése, új alkotások, események tájékoztatása</li><li>Megrendelések teljesítése és visszajelzés</li></ul>",
     "<strong>Jogalap:</strong> az érintett önkéntes hozzájárulása (GDPR 6. cikk (1) bekezdés a) pont)",
-    "<strong>Adatbiztonság:</strong> Az adatkezelő technikai és szervezési intézkedéseket alkalmaz az adatok védelme érdekében. Az e-mail címek titkosítva kerülnek tárolásra (pl. SHA-256 hash és AES-256-CBC titkosítás), a megrendelések adatai pedig kizárólag az adatkezelő saját postafiókjába kerülnek továbbításra. Az adatokhoz illetéktelen személyek nem férhetnek hozzá.",
+    "<strong>Adatbiztonság:</strong> Az adatkezelő technikai és szervezési intézkedéseket alkalmaz az adatok védelme érdekében. Az e-mail címek és nevek titkosítva és hashelve kerülnek tárolásra (AES-256-CBC és SHA-256). A megrendelés tartalma (részletek, megjegyzés) olvasható formában kerül mentésre, de kizárólag az adatkezelő jelszóval védett postafiókjába is továbbításra kerül. Az adatokhoz illetéktelen személyek nem férhetnek hozzá.",
     "<strong>Adatok megőrzése:</strong> az adatkezelő mindaddig őrzi az adatokat, amíg az érintett vissza nem vonja hozzájárulását",
     "<strong>Adatok továbbítása:</strong> nem történik harmadik félnek adattovábbítás",
-    "<strong>Adatok tárolása:</strong> A megadott adatok biztonságos szerveren, jelszóval védett adatbázisban (MongoDB) kerülnek tárolásra. Az e-mail címek titkosítva és hashelve tárolódnak. A rendszer fizikai elhelyezkedése az Európai Unión belül biztosítható (pl. DigitalOcean EU régió).",
-    "<strong>Hozzájárulás visszavonása:</strong> Az érintett a hozzájárulását bármikor, indoklás nélkül visszavonhatja az adatkezelő fenti e-mail címén.",
+    "<strong>Adatok tárolása:</strong> A megadott adatok biztonságos szerveren, jelszóval védett adatbázisban (MongoDB) kerülnek tárolásra. Az e-mail címek és nevek titkosítva (AES-256) és hashelve (SHA-256) tárolódnak. A megrendelés szöveges tartalma olvasható formában kerül mentésre. A rendszer fizikai elhelyezkedése az Európai Unión belül biztosítható (pl. DigitalOcean EU régió).",
+    ",<strong>Hozzájárulás visszavonása:</strong> Az érintett a hozzájárulását bármikor, indoklás nélkül visszavonhatja az adatkezelő fenti e-mail címén.",
     "<strong>Cookie-k és naplófájlok:</strong> A weboldal nem használ sütiket (cookie-kat), és nem gyűjt automatikusan naplóadatokat vagy statisztikai információkat a látogatásról.",
     "<em>Az adatkezelés az Európai Parlament és a Tanács (EU) 2016/679 rendelete („GDPR”) alapján történik.</em>",
     "<strong>Jogok:</strong><ul><li>Hozzáférés a saját adatokhoz</li><li>Helyesbítés, törlés, az adatkezelés korlátozása</li><li>Hozzájárulás visszavonása</li><li>Panasz benyújtása: Nemzeti Adatvédelmi és Információszabadság Hatóság (NAIH)</li></ul>",
-    "<strong>Utolsó frissítés:</strong> 2025. június 5."
+    "<strong>Utolsó frissítés:</strong> 2025. június 6."
   ]
 }

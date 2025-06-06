@@ -3,62 +3,64 @@ const adminService = require("../services/adminService");
 const fs = require("fs");
 const path = require("path");
 const instagramTokenService = require("../services/instagramTokenService");
+const orderService = require("../services/orderService");
+const subscriberService = require("../services/subscriberService");
 
 const localesPath = path.join(__dirname, "../../client/src/locales");
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 const login = async (req, res) => {
-    const { email, password } = req.body;
+    const {email, password} = req.body;
     const admin = await adminService.findByEmail(email);
 
     if (!admin || !(await admin.comparePassword(password))) {
-        return res.status(401).json({ message: "Hibás bejelentkezési adatok." });
+        return res.status(401).json({message: "Hibás bejelentkezési adatok."});
     }
 
-    const token = jwt.sign({ id: admin._id, role: admin.role }, JWT_SECRET, {
+    const token = jwt.sign({id: admin._id, role: admin.role}, JWT_SECRET, {
         expiresIn: "1d"
     });
 
-    res.json({ token, role: admin.role });
+    res.json({token, role: admin.role});
 };
 
 const register = async (req, res) => {
-    const { email, password } = req.body;
+    const {email, password} = req.body;
     const existingAdmins = await adminService.countAdmins();
 
     if (existingAdmins > 0 && (!req.user || req.user.role !== "admin")) {
-        return res.status(403).json({ message: "Csak hitelesített admin regisztrálhat új adminokat." });
+        return res.status(403).json({message: "Csak hitelesített admin regisztrálhat új adminokat."});
     }
 
     const exists = await adminService.findByEmail(email);
     if (exists) {
-        return res.status(400).json({ message: "Ez az email már használatban van." });
+        return res.status(400).json({message: "Ez az email már használatban van."});
     }
 
     const admin = await adminService.createAdmin(email, password);
-    res.status(201).json({ message: "Admin sikeresen létrehozva.", id: admin._id });
+    res.status(201).json({message: "Admin sikeresen létrehozva.", id: admin._id});
 };
 
 const updateEmail = async (req, res) => {
-    const { newEmail } = req.body;
+    const {newEmail} = req.body;
     const adminId = req.user.id;
 
     const updated = await adminService.updateEmail(adminId, newEmail);
-    res.json({ message: "Email frissítve", email: updated.email });
+    res.json({message: "Email frissítve", email: updated.email});
 };
 
 const statusCheck = async (req, res) => {
     try {
         const userId = req.query.userId;
         if (!userId) {
-            return res.status(400).json({ message: "userId paraméter szükséges" });
+            return res.status(400).json({message: "userId paraméter szükséges"});
         }
 
         const validation = await instagramTokenService.validateToken(userId);
 
         const tokenData = await instagramTokenService.getTokenByUserId(userId);
         if (!tokenData) {
-            return res.status(404).json({ message: "Token nem található" });
+            return res.status(404).json({message: "Token nem található"});
         }
 
         res.json({
@@ -89,7 +91,7 @@ const getLanguageFile = async (req, res) => {
         const data = fs.readFileSync(filePath, "utf-8");
         res.json(JSON.parse(data));
     } catch (err) {
-        res.status(500).json({ message: "Nem sikerült betölteni a nyelvi fájlt." });
+        res.status(500).json({message: "Nem sikerült betölteni a nyelvi fájlt."});
     }
 };
 
@@ -100,10 +102,58 @@ const saveLanguageFile = async (req, res) => {
     try {
         const filePath = path.join(localesPath, `${locale}.json`);
         fs.writeFileSync(filePath, JSON.stringify(content, null, 2), "utf-8");
-        res.json({ message: `A ${locale} nyelvi fájl mentve.` });
+        res.json({message: `A ${locale} nyelvi fájl mentve.`});
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Nem sikerült menteni a nyelvi fájlt." });
+        res.status(500).json({message: "Nem sikerült menteni a nyelvi fájlt."});
+    }
+};
+
+const getGdprExport = async (req, res) => {
+    try {
+        const orders = await orderService.getAllOrders();
+        const subscribers = await subscriberService.getAll();
+
+        const gdprData = [];
+
+        if (subscribers.length > 0) {
+            subscribers.forEach(sub => {
+                gdprData.push({
+                    purpose: "Hírlevél küldése",
+                    legal: "Hozzájárulás (GDPR 6. cikk (1)(a))",
+                    dataType: "e-mail cím (SHA-256 hash)",
+                    source: "Érintettől",
+                    recipient: "nincs",
+                    duration: "hozzájárulás visszavonásáig",
+                    location: "MongoDB (EU régió)",
+                    security: "AES-256 (e-mail), SHA-256 (azonosító), jelszóval védett hozzáférés",
+                    emailHash: sub.emailHash,
+                    subscribedAt: sub.subscribedAt,
+                });
+            });
+        }
+
+        if (orders.length > 0) {
+            orders.forEach(order => {
+                gdprData.push({
+                    purpose: "Megrendelések kezelése",
+                    legal: "Hozzájárulás (GDPR 6. cikk (1)(a))",
+                    dataType: "név, e-mail, rendelés szöveg (titkosított)",
+                    source: "Érintettől",
+                    recipient: "nincs",
+                    duration: "hozzájárulás visszavonásáig",
+                    location: "MongoDB (EU régió) / Gmail (admin e-mail)",
+                    security: "AES-256 (név/e-mail), Gmail 2FA, TLS védelem",
+                    emailHash: order.emailHash,
+                    createdAt: order.createdAt,
+                });
+            });
+        }
+
+        res.json(gdprData);
+    } catch (err) {
+        console.error("GDPR export error:", err);
+        res.status(500).json({ message: "Nem sikerült betölteni az adatokat." });
     }
 };
 
@@ -113,5 +163,6 @@ module.exports = {
     updateEmail,
     statusCheck,
     getLanguageFile,
-    saveLanguageFile
+    saveLanguageFile,
+    getGdprExport
 };

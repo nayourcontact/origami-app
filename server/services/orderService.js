@@ -1,3 +1,25 @@
+const crypto = require("crypto");
+const Order = require("../models/Order");
+const { sendConfirmationEmail } = require("./emailService");
+
+function hashEmail(email) {
+    return crypto.createHash("sha256").update(email.toLowerCase().trim()).digest("hex");
+}
+
+function encrypt(text) {
+    const key = Buffer.from(process.env.ENCRYPTION_SECRET, 'hex');
+    const iv = Buffer.from(process.env.EMAIL_ENCRYPTION_IV, 'hex');
+
+    if (key.length !== 32 || iv.length !== 16) {
+        throw new Error("Encryption configuration invalid");
+    }
+
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
+}
+
 exports.processOrder = async ({ name, email, details, notes }) => {
     const adminEmail = "galditakacsbertold@gmail.com";
     const subject = `Új megrendelés érkezett – ${new Date().toLocaleString("hu-HU")}`;
@@ -43,21 +65,43 @@ Dátum: ${new Date().toLocaleString("hu-HU")}
         html: htmlContent,
     };
 
-    try {
-        const transporter = require("nodemailer").createTransport({
-            service: "gmail",
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
-        });
+    const transporter = require("nodemailer").createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
 
+    try {
         await transporter.sendMail(mailOptions);
         console.log(`[ORDER EMAIL]: Order sent successfully from: ${email}`);
     } catch (err) {
         console.error(`[ORDER EMAIL ERROR]: ${err.message}`);
-        const error = new Error("Failed to send order confirmation email.");
-        error.statusCode = 500;
-        throw error;
+        throw new Error("Failed to send order email.");
     }
+
+    try {
+        const emailHash = hashEmail(email);
+        const encryptedEmail = encrypt(email);
+        const encryptedName = encrypt(name);
+
+        const order = new Order({
+            encryptedName,
+            encryptedEmail,
+            emailHash,
+            details,
+            notes
+        });
+
+        await order.save();
+        console.log(`[ORDER]: Order saved to DB for ${email}`);
+    } catch (err) {
+        console.error(`[ORDER DB ERROR]: ${err.message}`);
+        throw new Error("Failed to save order.");
+    }
+};
+
+exports.getAllOrders = async () => {
+    return await Order.find({}).lean();
 };

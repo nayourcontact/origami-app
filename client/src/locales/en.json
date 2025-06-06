@@ -65,14 +65,14 @@
     "<strong>Data Collected:</strong><ul><li>Newsletter: email address</li><li>Order: name, email address, order content, notes (optional)</li></ul>",
     "<strong>Purpose of Data Processing:</strong><ul><li>Sending newsletters, updates on new creations and events</li><li>Fulfilling and responding to orders</li></ul>",
     "<strong>Legal Basis:</strong> voluntary consent of the data subject (GDPR Article 6(1)(a))",
-    "<strong>Data Security:</strong> Technical and organizational measures are implemented to protect data. Emails are stored encrypted (e.g., SHA-256 hash and AES-256-CBC encryption). Order details are only sent to the data controller's own inbox. Unauthorized persons cannot access the data.",
+    "<strong>Data Security:</strong> Technical and organizational measures are implemented to protect data. Names and email addresses are stored encrypted and hashed (AES-256-CBC and SHA-256). Order content (details, notes) is stored in plaintext but only forwarded to the data controller's password-protected inbox. Unauthorized persons cannot access the data.",
     "<strong>Data Retention:</strong> Data is kept until the data subject withdraws consent.",
     "<strong>Data Transfer:</strong> No data is shared with third parties.",
-    "<strong>Data Storage:</strong> Data is stored on secure servers in password-protected MongoDB databases. Email addresses are encrypted and hashed. Data storage is ensured within the EU (e.g., DigitalOcean EU region).",
+    "<strong>Data Storage:</strong> Data is stored on secure servers in password-protected MongoDB databases. Names and emails are encrypted (AES-256) and hashed (SHA-256). Order content is stored in plaintext. Data storage is ensured within the EU (e.g., DigitalOcean EU region).",
     "<strong>Withdrawal of Consent:</strong> Consent can be withdrawn at any time without justification by contacting the email above.",
     "<strong>Cookies and Log Files:</strong> The website does not use cookies or collect log or statistical visit data.",
     "<em>Data processing is in accordance with Regulation (EU) 2016/679 of the European Parliament and Council (GDPR).</em>",
     "<strong>Rights:</strong><ul><li>Access to your own data</li><li>Rectification, erasure, restriction of processing</li><li>Withdrawal of consent</li><li>Complaint: Hungarian National Authority for Data Protection and Freedom of Information (NAIH)</li></ul>",
-    "<strong>Last updated:</strong> June 5, 2025"
+    "<strong>Last updated:</strong> June 6, 2025"
   ]
 }

@@ -3,15 +3,16 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 module.exports = (req, res, next) => {
     const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith("Bearer ")) return res.status(401).json({ message: "Hiányzó token." });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({message: "Hiányzó vagy hibás token."});
+    }
 
     const token = authHeader.split(" ")[1];
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
+        req.user = jwt.verify(token, JWT_SECRET);
         next();
     } catch (err) {
-        return res.status(403).json({ message: "Érvénytelen token." });
+        return res.status(401).json({message: "Érvénytelen vagy lejárt token."});
     }
 };

@@ -83,42 +83,38 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    if (to.meta.requiresAuth || to.meta.adminOnly) {
-        const token = localStorage.getItem('adminToken')
-        const role = localStorage.getItem('role')
+    const token = localStorage.getItem('adminToken');
+    const isAdminRoute = to.path.startsWith('/admin');
 
+    // Admin védelem
+    if (isAdminRoute && to.path !== '/admin/login') {
         if (!token) {
-            return next('/admin/login')
-        }
-
-        if (to.meta.adminOnly && role !== 'admin') {
-            return next('/admin/login')
+            return next('/admin/login');
         }
     }
 
-    if (to.path.startsWith('/admin')) {
-        return next()
+    // Nyelvi validáció csak nem-admin oldalakon
+    if (!isAdminRoute) {
+        const lang = to.params.lang;
+        if (!lang || !['hu', 'en'].includes(lang)) {
+            return next({ path: '/hu/home' });
+        }
+
+        // Meta címek és leírás frissítése
+        document.title =
+            typeof to.meta.title === "function" ? to.meta.title(lang) : "Origami Alfredo";
+
+        const description =
+            typeof to.meta.description === "function"
+                ? to.meta.description(lang)
+                : "Origami művészet, oktatóanyagok és galéria.";
+
+        updateMetaTag("description", description);
+        updateMetaTag("og:title", document.title);
+        updateMetaTag("og:description", description);
+        updateMetaTag("twitter:title", document.title);
+        updateMetaTag("twitter:description", description);
     }
-
-    const lang = to.params.lang;
-    if (!lang || !['hu', 'en'].includes(lang)) {
-        console.log("Invalid or missing lang param, redirecting to default.");
-        return next({path: '/hu/home'});
-    }
-
-    document.title =
-        typeof to.meta.title === "function" ? to.meta.title(lang) : "Origami Alfredo";
-
-    const description =
-        typeof to.meta.description === "function"
-            ? to.meta.description(lang)
-            : "Origami művészet, oktatóanyagok és galéria.";
-
-    updateMetaTag("description", description);
-    updateMetaTag("og:title", document.title);
-    updateMetaTag("og:description", description);
-    updateMetaTag("twitter:title", document.title);
-    updateMetaTag("twitter:description", description);
 
     next();
 });
