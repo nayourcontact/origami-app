@@ -1,10 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
 
 .footer {
-    position: relative;
-    bottom: 0;
-    left: 0;
-    right: 0;
     background-color: #1a1a1a !important;
     color: #d1d1d1;
     padding: 20px 40px;
@@ -13,21 +9,38 @@
     box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.4);
     width: 100%;
     z-index: 50;
-    position: static;
+    flex-shrink: 0;
 }
 
 .footer-content {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     width: 100%;
     max-width: 1300px;
     margin: 0 auto;
+    gap: 2rem;
 }
 
 .newsletter {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    max-width: 350px;
+    flex-shrink: 0;
+}
+
+.newsletter label {
+    line-height: 1.4;
+    font-size: 14px;
+    color: #d1d1d1;
+}
+
+.newsletter input[type="checkbox"] {
+    accent-color: #00ceff;
+    transform: scale(1.1);
 }
 
 .email-input {
@@ -83,4 +96,84 @@
 .copyright {
     font-size: 14px;
     white-space: nowrap;
+}
+
+.error-message {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.success-message {
+    color: #26dc44;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: #fff;
+    color: #1a1a1a;
+    font-family: "Poppins", sans-serif;
+    padding: 2.5rem 2rem;
+    border-radius: 1rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    transform: translateY(0); /* fallback, ha transition lenne */
+    transition: all 0.3s ease;
+}
+
+.modal h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.modal p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.modal input.email-input {
+    width: 100%;
+    padding: 12px 18px;
+    border: 2px solid #00ceff;
+    border-radius: 9999px;
+    font-size: 16px;
+    font-family: "Poppins", sans-serif;
+    background-color: #f9f9f9;
+    color: #1a1a1a;
+    outline: none;
+    transition: border-color 0.3s ease-in-out;
+    margin-bottom: 1rem;
+}
+
+.modal input.email-input:focus {
+    border-color: #0084a5;
+    background-color: white;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.code-input {
+    margin-top: 1rem;
+    letter-spacing: 2px;
+    text-align: center;
+    text-transform: uppercase;
 }

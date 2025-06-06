@@ -23,7 +23,7 @@
         </slot>
       </template>
 
-      <slot v-if="hasLabel"/>
+      <slot/>
     </button>
 
     <transition name="fade">

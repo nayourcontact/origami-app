@@ -4,6 +4,8 @@ import Gallery from "../views/Gallery.vue";
 import Tutorial from "../views/Tutorial.vue";
 import Order from "../views/Order.vue";
 import NotFound from "../views/NotFound.vue";
+import AdminDashboard from "../views/AdminDashboard.vue";
+import AdminLogin from "../views/AdminLogin.vue";
 import {t} from "../locales";
 
 const getSavedLanguage = () =>
@@ -16,6 +18,12 @@ const routes = [
         redirect: () => {
             const savedLang = getSavedLanguage();
             return `/${savedLang}/home`;
+        },
+    },
+    {
+        path: "/:lang(hu|en)",
+        redirect: (to) => {
+            return `/${to.params.lang}/home`;
         },
     },
     {
@@ -57,6 +65,15 @@ const routes = [
     {
         path: "/:pathMatch(.*)*",
         component: NotFound,
+    },
+    {
+        path: '/admin/login',
+        component: AdminLogin
+    },
+    {
+        path: '/admin/dashboard',
+        component: AdminDashboard,
+        meta: {requiresAuth: true, adminOnly: true}
     }
 ];
 
@@ -66,10 +83,26 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    const lang = to.params.lang;
+    if (to.meta.requiresAuth || to.meta.adminOnly) {
+        const token = localStorage.getItem('adminToken')
+        const role = localStorage.getItem('role')
 
+        if (!token) {
+            return next('/admin/login')
+        }
+
+        if (to.meta.adminOnly && role !== 'admin') {
+            return next('/admin/login')
+        }
+    }
+
+    if (to.path.startsWith('/admin')) {
+        return next()
+    }
+
+    const lang = to.params.lang;
     if (!lang || !['hu', 'en'].includes(lang)) {
-        console.log("Invalid or missing lang param, skipping redirect.");
+        console.log("Invalid or missing lang param, redirecting to default.");
         return next({path: '/hu/home'});
     }
 

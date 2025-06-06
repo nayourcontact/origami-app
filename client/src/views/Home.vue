@@ -1,10 +1,10 @@
 <template>
-  <section class="bio-section">
+  <section ref="viewWrapper" class="bio-section">
     <h2 class="bio-heading">{{ bio.split('\n')[0] }}</h2>
     <blockquote class="bio-quote">{{ bio.split('\n')[1] }}</blockquote>
   </section>
 
-  <section ref="gallery" class="gallery-section">
+  <section ref="galleryWrapper" class="gallery-section">
     <div class="gallery-grid">
       <div v-for="(post, index) in posts" :key="index" class="gallery-item">
         <img v-if="post.mediaType === 'IMAGE' || post.mediaType === 'CAROUSEL_ALBUM'" :src="post.mediaUrl"
@@ -21,23 +21,25 @@
     </div>
   </section>
 
-  <section class="intro-text-section">
+  <section ref="introWrapper" class="intro-text-section">
     <div class="intro-content-wrapper">
       <div class="intro-image">
-        <img v-if="introImage" :src="introImage" alt="Icar origami" />
+        <img v-if="introImage" :src="introImage" alt="Icar origami"/>
       </div>
       <div class="intro-text-container">
         <p>
-          Az origami japán művészet, amelynek lényege, hogy egyetlen papírlapból vágás nélkül bármilyen formát létre lehet hozni.
-          Egyszerre kihívás és meditatív tevékenység, amely fejleszti a türelmet, a precizitást, a koncentrációt és a kézügyességet.
+          Az origami japán művészet, amelynek lényege, hogy egyetlen papírlapból vágás nélkül bármilyen formát létre
+          lehet hozni.
+          Egyszerre kihívás és meditatív tevékenység, amely fejleszti a türelmet, a precizitást, a koncentrációt és a
+          kézügyességet.
           Engem az alkotás része fogott meg a legjobban. Számomra az origami egy csodálatos utazás, egy Odüsszeia.
           Amikor szemeim előtt lépésről lépésre, szép lassan életre kel a papír – számomra ez a legizgalmasabb.
-          Csatlakozz hozzám egy inspiráló bemutatóra, ahol néhány alkotásomat bemutatva, bevezetlek az origami csodálatos világába!
+          Csatlakozz hozzám egy inspiráló bemutatóra, ahol néhány alkotásomat bemutatva, bevezetlek az origami
+          csodálatos világába!
         </p>
       </div>
     </div>
   </section>
-
 
 </template>
 
@@ -45,20 +47,34 @@
 import {
   posts,
   introImage,
-  intro,
-  gallery,
-  scrollContainer,
   bio,
   initAnimations,
   initBio,
-  initNewPosts
+  initNewSixPosts
 } from "../composables/Home.js";
+
 import "../assets/styles/Home.css";
-import {onMounted} from "vue";
+import gsap from "gsap";
+import {ref, onMounted} from "vue";
+import {useRoute} from "vue-router";
+
+const viewWrapper = ref(null);
+const galleryWrapper = ref(null);
+const introWrapper = ref(null);
+const route = useRoute();
+const currentLanguage = route.params.lang || "hu";
 
 onMounted(() => {
-  initAnimations({intro, gallery, scrollContainer});
-  initBio();
-  initNewPosts();
+  initAnimations();
+  initBio(currentLanguage);
+  initNewSixPosts(currentLanguage);
+
+  const tl = gsap.timeline({
+    defaults: {opacity: 0, y: 40, duration: 0.5, ease: "power3.out"}
+  });
+
+  tl.from(viewWrapper.value, {})
+      .from(galleryWrapper.value, {}, "-=0.3")
+      .from(introWrapper.value, {}, "-=0.3");
 });
 </script>

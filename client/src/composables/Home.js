@@ -1,18 +1,26 @@
-import {ref} from "vue";
+import {ref, computed} from "vue";
 import axios from "axios";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import Lenis from "@studio-freight/lenis";
 import {API_BASE_URL, INSTAGRAM_USER_ID} from "../config.js";
+import {t} from "../locales";
 
 export const introImage = ref(null);
 export const posts = ref(null);
-export const intro = ref(null);
 export const gallery = ref(null);
-export const scrollContainer = ref(null);
 export const bio = ref("Travel with me to the World of Origami!");
 
-export function initAnimations({intro, gallery}) {
+function mapInstagramMessageToKey(message) {
+    const map = {
+        "Nem található biográfia az Instagramon.": "instagramBioNotFound",
+        "Nem sikerült lekérni a biográfiát. Próbáld újra később!": "instagramBioError",
+        "Nem sikerült betölteni az Instagram posztokat. Próbálja meg később!": "instagramPostsError"
+    };
+    return map[message] || null;
+}
+
+export function initAnimations() {
     gsap.registerPlugin(ScrollTrigger);
 
     const lenis = new Lenis({
@@ -27,55 +35,48 @@ export function initAnimations({intro, gallery}) {
     }
 
     requestAnimationFrame(raf);
-    /*
-    gsap.to(intro.value.querySelectorAll("h1, p, button"), {
-        opacity: 1,
-        y: 0,
-        stagger: 0.3,
-        duration: 1,
-        ease: "power2.out",
-    });
-
-    gsap.from(gallery.value, {
-        opacity: 0,
-        y: 50,
-        duration: 1,
-        scrollTrigger: {
-            trigger: gallery.value,
-            start: "top 80%",
-            toggleActions: "play none none none",
-        },
-    });
-
-     */
 }
 
-export async function initBio() {
+export async function initBio(currentLanguage) {
     try {
         const res = await axios.get(`${API_BASE_URL}/api/biography/${INSTAGRAM_USER_ID}`);
+        if (!res.data?.user?.biography) {
+            const key = mapInstagramMessageToKey("Nem található biográfia az Instagramon.");
+            window.showToast?.(t(currentLanguage, key || "instagramBioNotFound"), "info");
+        }
+
         bio.value = res.data?.user?.biography || '';
     } catch (err) {
-        console.error("Could not retrieve the Instagram bio:", err);
+        const key = mapInstagramMessageToKey("Nem sikerült lekérni a biográfiát. Próbáld újra később!");
+        window.showToast?.(t(currentLanguage, key || "instagramBioError"), "error");
     }
 }
 
-export async function initNewPosts() {
+export async function initNewSixPosts(currentLanguage) {
     try {
         const res = await axios.get(`${API_BASE_URL}/api/posts/${INSTAGRAM_USER_ID}`);
         const allPosts = res.data?.posts || [];
+
+        if (!Array.isArray(allPosts) || !allPosts.length) {
+            console.warn("Üres vagy hibás poszt lista.");
+            posts.value = [];
+            return;
+        }
+
         posts.value = allPosts
             .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
             .slice(0, 6);
 
-        const icarCaption = `Icar (Ίκαρος)`;
-        const icarPost = allPosts.find(
-            (post) => post.caption?.includes(icarCaption)
-        );
-        if (icarPost) {
-            introImage.value = icarPost.mediaUrl;
+        const iCarPost = allPosts.find(post => post.caption?.includes("Icar (Ίκαρος)"));
+        if (iCarPost) {
+            introImage.value = iCarPost.mediaUrl;
+        } else {
+            introImage.value = allPosts[0]?.mediaUrl || null;
         }
     } catch (err) {
-        console.error("Could not retrieve the latest Instagram posts:", err);
+        console.error("Nem sikerült betölteni az Instagram posztokat:", err);
+        posts.value = [];
+        const key = mapInstagramMessageToKey("Nem sikerült betölteni az Instagram posztokat. Próbálja meg később!");
+        window.showToast?.(t(currentLanguage, key || "instagramPostsError"), "error");
     }
 }
-

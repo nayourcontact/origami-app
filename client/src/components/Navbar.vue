@@ -46,7 +46,7 @@ const language = computed(() => route.params.lang || storedLanguage || "hu");
 const navLinks = [
   {path: "/home", label: "", icon: "fas fa-home", tooltip: "homeTooltip"},
   {path: "/gallery", label: "", icon: "fas fa-images", tooltip: "galleryTooltip"},
-  {path: "/tutorial", label: "", icon: "fas fa-book-open", tooltip: "tutorialTooltip"},
+  /*{path: "/tutorial", label: "", icon: "fas fa-book-open", tooltip: "tutorialTooltip"},*/
   {path: "/order", label: "", icon: "fas fa-shopping-cart", tooltip: "orderTooltip"},
 ];
 

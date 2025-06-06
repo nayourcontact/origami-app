@@ -5,62 +5,77 @@ const {
 } = require('../services/instagramPostService');
 const InstagramPost = require('../models/Post');
 
-const getPosts = async (req, res) => {
+const getPosts = async (req, res, next) => {
     const userId = req.params.userId;
-    try {
-        const {data, fromCache} = await fetchInstagramPosts(userId);
-        return res.json({
-            success: true,
-            cached: fromCache,
-            posts: data,
-        });
-    } catch (err) {
-        return res.status(500).json({
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+
+    if (!userId || typeof userId !== 'string') {
+        return res.status(400).json({
             success: false,
-            error: err.message,
+            message: 'Missing or invalid userId parameter.'
         });
+    }
+
+    try {
+        await fetchInstagramPosts(userId);
+
+        const skip = (page - 1) * limit;
+        const posts = await InstagramPost.find({userId})
+            .sort({timestamp: -1})
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        const total = await InstagramPost.countDocuments({userId});
+
+        res.json({
+            success: true,
+            posts,
+            total,
+            page,
+            pageCount: Math.ceil(total / limit)
+        });
+
+    } catch (err) {
+        next(err);
     }
 };
 
-const getVideoPosts = async (req, res) => {
+const getVideoPosts = async (req, res, next) => {
     const userId = req.params.userId;
+    if (!userId) return res.status(400).json({success: false, message: 'Missing userId'});
+
     try {
         const videos = await getInstagramVideosByUser(userId);
-        return res.json({success: true, posts: videos});
+        res.json({success: true, posts: videos});
     } catch (err) {
-        return res.status(500).json({
-            success: false,
-            error: err.message,
-        });
+        next(err);
     }
 };
 
-const getImagePosts = async (req, res) => {
+const getImagePosts = async (req, res, next) => {
     const userId = req.params.userId;
+    if (!userId) return res.status(400).json({success: false, message: 'Missing userId'});
+
     try {
         const images = await getInstagramImagesByUser(userId);
-        return res.json({success: true, posts: images});
+        res.json({success: true, posts: images});
     } catch (err) {
-        return res.status(500).json({
-            success: false,
-            error: err.message,
-        });
+        next(err);
     }
 };
 
-const deleteAllPosts = async (req, res) => {
+const deleteAllPosts = async (req, res, next) => {
     try {
         const result = await InstagramPost.deleteMany({});
-        return res.json({
+        res.json({
             success: true,
             deletedCount: result.deletedCount,
-            message: 'All Instagram posts deleted successfully',
+            message: 'All Instagram posts deleted successfully'
         });
     } catch (err) {
-        return res.status(500).json({
-            success: false,
-            error: err.message,
-        });
+        next(err);
     }
 };
 

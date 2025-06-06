@@ -7,7 +7,11 @@ const InstagramPostSchema = new mongoose.Schema({
     mediaUrl: String,
     thumbnailUrl: String,
     caption: String,
-    createdAt: { type: Date, default: Date.now },
+    timestamp: {
+        type: Date,
+        required: false,
+    },
+    createdAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('InstagramPost', InstagramPostSchema);

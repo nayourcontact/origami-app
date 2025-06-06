@@ -1,0 +1,109 @@
+.order-section {
+    padding: 2rem;
+}
+
+.order-form-wrapper {
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 2rem;
+    border-radius: 16px;
+    max-width: 700px;
+    margin: auto;
+    color: #000000;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.order-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.order-form label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+}
+
+.order-form label.checkbox-label {
+    flex-direction: row !important;
+    align-items: center;
+    font-weight: normal;
+}
+
+.order-form input,
+.order-form textarea {
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #555;
+    font-size: 1rem;
+    font-weight: 400;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+}
+
+.order-form input::placeholder,
+.order-form textarea::placeholder {
+    color: #aaa;
+}
+
+.submit-button {
+    background: #00ceff;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.submit-button:hover {
+    background: #0084a2;
+}
+
+.error-message {
+    color: #c50c0c;
+    font-weight: bold;
+}
+
+.success-message {
+    color: #047a93;
+    font-weight: bold;
+}
+
+.required-star {
+    color: #c00;
+    margin-left: 0.25rem;
+    font-weight: bold;
+}
+
+.label-row {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.checkbox-input {
+    margin-top: 4px;
+}
+
+.checkbox-label span {
+    flex: 1;
+}
+
+.privacy-link {
+    text-decoration: underline;
+    color: #2563eb;
+    margin-left: 4px;
+    display: inline;
+}

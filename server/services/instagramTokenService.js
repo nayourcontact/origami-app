@@ -6,6 +6,7 @@ const saveToken = async ({token, expiresAt, userId, clientSecret}) => {
     try {
         const encryptedToken = encrypt(token);
         const encryptedSecret = encrypt(clientSecret);
+
         const existing = await InstagramToken.findOne({userId});
         if (existing) {
             existing.token = encryptedToken;
@@ -26,8 +27,10 @@ const saveToken = async ({token, expiresAt, userId, clientSecret}) => {
             return newToken;
         }
     } catch (error) {
-        console.error(`Failed to save Instagram token for user ${userId}:`, error);
-        throw new Error('Could not save Instagram token');
+        console.error(`Failed to save token for user ${userId}:`, error);
+        const err = new Error('Could not save Instagram token');
+        err.statusCode = 500;
+        throw err;
     }
 };
 
@@ -42,34 +45,55 @@ const getTokenByUserId = async (userId) => {
             clientSecret: decrypt(record.clientSecret),
         };
     } catch (error) {
-        console.error(`Failed to retrieve Instagram token for user ${userId}:`, error);
-        throw new Error('Could not retrieve Instagram token');
+        console.error(`Failed to retrieve token for user ${userId}:`, error);
+        const err = new Error('Could not retrieve Instagram token');
+        err.statusCode = 500;
+        throw err;
     }
 };
 
 const refreshInstagramToken = async (userId) => {
     const record = await getTokenByUserId(userId);
-    if (!record) throw new Error('User token not found');
+    if (!record) {
+        const err = new Error('User token not found');
+        err.statusCode = 404;
+        throw err;
+    }
 
     try {
-        const response = await axios.get(
-            'https://graph.instagram.com/access_token',
-            {
-                params: {
-                    grant_type: 'ig_exchange_token',
-                    access_token: record.token,
-                    client_secret: record.clientSecret,
-                },
-            }
-        );
+        const response = await axios.get('https://graph.instagram.com/refresh_access_token', {
+            params: {
+                grant_type: 'ig_refresh_token',
+                access_token: record.token,
+            },
+            timeout: 5000
+        });
+
+        const { access_token, expires_in } = response.data;
+
+        // Calculate new expiry date
+        const expiresAt = new Date(Date.now() + expires_in * 1000);
+
+        // Save the new token
+        await saveToken({
+            token: access_token,
+            expiresAt,
+            userId,
+            clientSecret: record.clientSecret, // optional reuse
+        });
 
         return {
-            access_token: response.data.access_token,
-            expires_in: response.data.expires_in,
+            access_token,
+            expires_in,
+            expiresAt,
         };
+
     } catch (error) {
-        console.error('Error refreshing Instagram token:', error.response?.data || error.message);
-        throw new Error('Token refresh failed');
+        const errMsg = error?.response?.data?.error?.message || error.message || 'Unknown error';
+        console.error(`Token refresh failed for user ${userId}:`, errMsg);
+        const err = new Error('Token refresh failed');
+        err.statusCode = 502;
+        throw err;
     }
 };
 
@@ -99,9 +123,9 @@ const validateToken = async (userId) => {
 
         return {valid: false, error: 'Token mismatch or invalid user ID'};
     } catch (error) {
-        const message = error?.response?.data?.error?.message || error.message || 'Unknown error';
-        console.error(`Token validation failed for user ${userId}:`, message);
-        return {valid: false, error: message};
+        const errMsg = error?.response?.data?.error?.message || error.message || 'Unknown error';
+        console.error(`Token validation failed for user ${userId}:`, errMsg);
+        return {valid: false, error: errMsg};
     }
 };
 

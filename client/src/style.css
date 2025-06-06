@@ -78,10 +78,18 @@ button:focus-visible {
     }
 }
 
-html, body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
+body {
+    padding-left: 150px;
+    transition: padding-left 0.3s ease-in-out;
+}
+
+body.admin-mode {
+    padding-left: 0 !important;
+}
+
+/* Ha admin nézetben vagyunk, ne legyen padding */
+.admin-mode body {
+    padding-left: 0 !important;
 }
 
 .video-wrapper {
@@ -101,6 +109,25 @@ html, body {
 }
 
 .scroll-page {
+    display: flex;
+    flex-direction: column;
+}
+
+/* A külső konténer, ami a LocomotiveScroll-höz kell */
+#scroll-container {
+    min-height: 100vh;
+}
+
+/* Flexes layout: tartalom és footer együtt */
+.page-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Tartalom kitölti a helyet, footer az aljára kerül */
+.scroll-page {
+    flex: 1;
     display: flex;
     flex-direction: column;
 }

@@ -1,37 +1,41 @@
 const axios = require('axios');
 const InstagramPost = require('../models/Post');
-const {getTokenByUserId} = require('../services/instagramTokenService');
+const {getTokenByUserId} = require('./instagramTokenService');
 
-const INSTAGRAM_MEDIA_FIELDS = 'id,media_type,media_url,thumbnail_url,caption';
+const INSTAGRAM_MEDIA_FIELDS = 'id,media_type,media_url,thumbnail_url,caption,timestamp';
 
 const fetchInstagramPosts = async (userId) => {
-    const cachedPosts = await InstagramPost.find({ userId }).lean();
+    const cachedPosts = await InstagramPost.find({userId}).lean();
     if (cachedPosts.length > 0) {
-        return { data: cachedPosts, fromCache: true };
+        return {data: cachedPosts, fromCache: true};
     }
 
     try {
         const tokenRecord = await getTokenByUserId(userId);
-        if (!tokenRecord?.token) throw new Error('Access token not found');
+        if (!tokenRecord?.token) {
+            const err = new Error(`Access token not found for user: ${userId}`);
+            err.statusCode = 404;
+            throw err;
+        }
 
         let allPosts = [];
         let nextUrl = `https://graph.instagram.com/me/media?fields=${INSTAGRAM_MEDIA_FIELDS}&access_token=${tokenRecord.token}`;
 
-        // Paging loop
         while (nextUrl) {
-            const response = await axios.get(nextUrl, { timeout: 5000 });
+            const response = await axios.get(nextUrl, {timeout: 5000});
 
             const posts = response.data?.data || [];
 
             for (const post of posts) {
                 const saved = await InstagramPost.findOneAndUpdate(
-                    { igId: post.id },
+                    {igId: post.id},
                     {
                         userId,
                         mediaType: post.media_type,
                         mediaUrl: post.media_url,
                         thumbnailUrl: post.thumbnail_url || null,
                         caption: post.caption || '',
+                        timestamp: post.timestamp ? new Date(post.timestamp) : null,
                         updatedAt: new Date(),
                     },
                     {
@@ -43,16 +47,28 @@ const fetchInstagramPosts = async (userId) => {
                 allPosts.push(saved);
             }
 
-            // Update URL for next page
             nextUrl = response.data?.paging?.next || null;
         }
 
-        return { data: allPosts, fromCache: false };
+        return {data: allPosts, fromCache: false};
 
     } catch (error) {
-        const errMsg = error?.response?.data?.error?.message || error.message || 'Unknown error';
-        console.error(`Failed to fetch Instagram posts for user ${userId}: ${errMsg}`);
-        throw new Error('Could not retrieve Instagram posts');
+        const isAxiosError = !!error?.response?.data?.error?.message;
+
+        console.error(`[InstagramPostService] Error for user ${userId}`);
+        console.error('Raw error:', {
+            message: error.message,
+            response: isAxiosError ? error.response.data.error : null,
+        });
+
+        const err = new Error(
+            isAxiosError
+                ? `Instagram API error: ${error.response.data.error.message}`
+                : error.message || 'Unknown error'
+        );
+
+        err.statusCode = isAxiosError ? 502 : 500;
+        throw err;
     }
 };
 
