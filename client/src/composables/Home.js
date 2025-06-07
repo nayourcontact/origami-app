@@ -1,10 +1,11 @@
-import {ref, computed} from "vue";
+import {ref} from "vue";
 import axios from "axios";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import Lenis from "@studio-freight/lenis";
 import {API_BASE_URL, INSTAGRAM_USER_ID} from "../config.js";
 import {t} from "../locales";
+import DOMPurify from "isomorphic-dompurify";
 
 export const introImage = ref(null);
 export const posts = ref(null);
@@ -45,7 +46,10 @@ export async function initBio(currentLanguage) {
             window.showToast?.(t(currentLanguage, key || "instagramBioNotFound"), "info");
         }
 
-        bio.value = res.data?.user?.biography || '';
+        bio.value = DOMPurify.sanitize(res.data?.user?.biography || '', {
+            ALLOWED_TAGS: [],
+            ALLOWED_ATTR: []
+        });
     } catch (err) {
         const key = mapInstagramMessageToKey("Nem sikerült lekérni a biográfiát. Próbáld újra később!");
         window.showToast?.(t(currentLanguage, key || "instagramBioError"), "error");

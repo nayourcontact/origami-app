@@ -23,4 +23,4 @@ const InstagramTokenSchema = new mongoose.Schema({
     },
 });
 
-module.exports = mongoose.model('InstagramToken', InstagramTokenSchema);
+module.exports = mongoose.models.InstagramToken || mongoose.model('InstagramToken', InstagramTokenSchema);

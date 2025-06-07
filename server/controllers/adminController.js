@@ -5,6 +5,7 @@ const path = require("path");
 const instagramTokenService = require("../services/instagramTokenService");
 const orderService = require("../services/orderService");
 const subscriberService = require("../services/subscriberService");
+const { decrypt } = require("../utils/encryption");
 
 const localesPath = path.join(__dirname, "../../client/src/locales");
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
@@ -17,6 +18,7 @@ const login = async (req, res) => {
         return res.status(401).json({message: "Hibás bejelentkezési adatok."});
     }
 
+    console.log(`[ADMIN LOGIN] Email: ${email} | IP: ${req.ip} | Idő: ${new Date().toISOString()}`);
     const token = jwt.sign({id: admin._id, role: admin.role}, JWT_SECRET, {
         expiresIn: "1d"
     });
@@ -157,6 +159,42 @@ const getGdprExport = async (req, res) => {
     }
 };
 
+const listOrders = async (req, res) => {
+    try {
+        console.log(`[ORDER ADMIN ACCESS]: ${req.user?.email || 'Ismeretlen'} | IP: ${req.ip} | Idő: ${new Date().toISOString()}`);
+        const rawOrders = await orderService.getAllOrdersSorted();
+
+        const orders = rawOrders.map(order => {
+            let name = "[Hiba: nincs név]";
+            let email = "[Hiba: nincs email]";
+
+            try {
+                name = decrypt(order.encryptedName);
+            } catch (e) {
+                console.warn(`Név visszafejtés sikertelen: ${e.message}`);
+            }
+
+            try {
+                email = decrypt(order.encryptedEmail);
+            } catch (e) {
+                console.warn(`Email visszafejtés sikertelen: ${e.message}`);
+            }
+
+            return {
+                ...order,
+                orderId: order.orderId || order._id,
+                name,
+                email
+            };
+        });
+
+        res.json(orders);
+    } catch (err) {
+        console.error("[ADMIN GET ORDERS ERROR]:", err);
+        res.status(500).json({ message: "Nem sikerült betölteni a megrendeléseket." });
+    }
+};
+
 module.exports = {
     login,
     register,
@@ -164,5 +202,6 @@ module.exports = {
     statusCheck,
     getLanguageFile,
     saveLanguageFile,
-    getGdprExport
+    getGdprExport,
+    listOrders,
 };

@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const Subscriber = require("../models/Subscriber");
 const VerificationCode = require("../models/VerificationCode");
-const {sendConfirmationEmail} = require("./emailService");
+const { sendConfirmationEmail } = require("./emailService");
 
 function generateCode() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();

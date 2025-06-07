@@ -5,6 +5,8 @@
           v-for="(toast, index) in toasts"
           :key="toast.id"
           :class="['toast', toast.type]"
+          role="alert"
+          aria-live="assertive"
       >
         {{ toast.message }}
       </div>

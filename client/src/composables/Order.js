@@ -75,9 +75,19 @@ export default function useOrderForm(currentLanguage) {
             details.value = "";
             notes.value = "";
         } catch (err) {
+            const validationErrors = err.response?.data?.errors;
+            console.error(validationErrors);
+
+            if (Array.isArray(validationErrors) && validationErrors.length > 0) {
+                invalidFields.value = validationErrors.map(e => e.param).filter(Boolean);
+                errorMessage.value = validationErrors.map(e => e.msg).filter(Boolean).join(" ");
+                console.error("[VALIDATION ERRORS]", errorMessage.value);
+                window.showToast?.(errorMessage.value, "error");
+                return;
+            }
+
             const message = err.response?.data?.message;
             const key = mapOrderBackendMessageToKey(message);
-
             errorMessage.value = t(currentLanguage.value, key || "errorOrder");
             window.showToast?.(errorMessage.value, "error");
         }

@@ -33,13 +33,22 @@ function encrypt(text) {
 
 function decrypt(encryptedData) {
     try {
-        const [ivHex, encryptedHex] = encryptedData.split(':');
-        if (!ivHex || !encryptedHex) {
-            const error = new Error('Invalid encrypted data format');
-            error.statusCode = 400;
-            throw error;
+        if (!encryptedData || typeof encryptedData !== 'string') {
+            throw new Error('Invalid encrypted data format');
         }
 
+        if (!encryptedData.includes(':')) {
+            // Régi formátum – fix IV használatával próbáljuk visszafejteni
+            const iv = Buffer.from(process.env.EMAIL_ENCRYPTION_IV, 'hex');
+            const encryptedText = Buffer.from(encryptedData, 'hex');
+
+            const decipher = crypto.createDecipheriv(algorithm, secretKey, iv);
+            const decrypted = Buffer.concat([decipher.update(encryptedText), decipher.final()]);
+            return decrypted.toString('utf8');
+        }
+
+        // Új formátum – iv:encrypted
+        const [ivHex, encryptedHex] = encryptedData.split(':');
         const iv = Buffer.from(ivHex, 'hex');
         const encryptedText = Buffer.from(encryptedHex, 'hex');
 

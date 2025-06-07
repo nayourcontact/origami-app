@@ -28,15 +28,11 @@
       </div>
       <div class="intro-text-container">
         <p>
-          Az origami japán művészet, amelynek lényege, hogy egyetlen papírlapból vágás nélkül bármilyen formát létre
-          lehet hozni.
-          Egyszerre kihívás és meditatív tevékenység, amely fejleszti a türelmet, a precizitást, a koncentrációt és a
-          kézügyességet.
-          Engem az alkotás része fogott meg a legjobban. Számomra az origami egy csodálatos utazás, egy Odüsszeia.
-          Amikor szemeim előtt lépésről lépésre, szép lassan életre kel a papír – számomra ez a legizgalmasabb.
-          Csatlakozz hozzám egy inspiráló bemutatóra, ahol néhány alkotásomat bemutatva, bevezetlek az origami
-          csodálatos világába!
+          <span v-for="(line, idx) in t(currentLanguage, 'introText').split('\n')" :key="idx">
+            {{ line }}<br />
+          </span>
         </p>
+
       </div>
     </div>
   </section>
@@ -57,6 +53,7 @@ import "../assets/styles/Home.css";
 import gsap from "gsap";
 import {ref, onMounted} from "vue";
 import {useRoute} from "vue-router";
+import { t } from "../locales";
 
 const viewWrapper = ref(null);
 const galleryWrapper = ref(null);

@@ -2,6 +2,7 @@
   <div class="admin-dashboard-wrapper">
     <aside class="sidebar">
       <button @click="activeTab = 'token'">🔐 Token kezelése</button>
+      <button @click="activeTab = 'orders'">📦 Megrendelések</button>
       <button @click="activeTab = 'languageEditor'">🌐 Nyelvi fájlok</button>
       <button @click="activeTab = 'gdprExport'">🗃️ Adatkezelés (GDPR)</button>
     </aside>
@@ -119,6 +120,37 @@
           </table>
 
           <button class="dashboard-button mt-4" @click="downloadCSV">📥 Letöltés CSV-ben</button>
+        </div>
+      </section>
+
+      <!-- MEGRENDELÉSEK -->
+      <section v-if="activeTab === 'orders'">
+        <div class="dashboard-card">
+          <h2 class="dashboard-subtitle">📦 Megrendelések</h2>
+          <table class="gdpr-table">
+            <thead>
+            <tr>
+              <th>🆔 Azonosító</th>
+              <th>📧 Email</th>
+              <th>👤 Név</th>
+              <th>📅 Dátum</th>
+              <th>📦 Részletek</th>
+              <th>📝 Megjegyzés</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr v-for="order in orders" :key="order.orderId">
+              <td><code class="text-blue-600 font-mono">{{ order.orderId || order._id }}</code></td>
+              <td>{{ order.email }}</td>
+              <td>{{ order.name }}</td>
+              <td><span class="text-gray-700">{{ formatDate(order.createdAt) }}</span></td>
+              <td>{{ order.details }}</td>
+              <td>{{ order.notes || "–" }}</td>
+            </tr>
+            </tbody>
+          </table>
+
         </div>
       </section>
 

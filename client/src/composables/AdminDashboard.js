@@ -1,5 +1,6 @@
 import api from "../../../server/utils/axios.js";
 import {API_BASE_URL, INSTAGRAM_USER_ID} from "../config.js";
+import DOMPurify from "isomorphic-dompurify";
 
 export default {
     data() {
@@ -17,7 +18,8 @@ export default {
             newClientSecret: '',
             saveTokenMessage: '',
             tokenModalOpen: false,
-            gdprTable: []
+            gdprTable: [],
+            orders: []
         };
     },
     computed: {
@@ -51,7 +53,6 @@ export default {
                     }
                 });
                 this.status = res.data;
-                console.log(res.data);
             } catch (err) {
                 this.status = null;
                 console.error("Státusz hiba:", err);
@@ -77,9 +78,21 @@ export default {
         updateTranslation(key, value) {
             this.languageFile = {
                 ...this.languageFile,
-                [key]: value
+                [key]: DOMPurify.sanitize(value, {
+                    ALLOWED_TAGS: [],
+                    ALLOWED_ATTR: []
+                })
             };
             this.changed = true;
+        },
+        async fetchOrders() {
+            try {
+                const res = await api.get(`${API_BASE_URL}/api/admin/orders`);
+                this.orders = res.data;
+            } catch (err) {
+                console.error("Nem sikerült betölteni a megrendeléseket:", err);
+                window.showToast?.("Nem sikerült betölteni a megrendeléseket.", "error");
+            }
         },
         async saveLanguageFile(event) {
             if (event?.preventDefault) event.preventDefault();
@@ -180,7 +193,7 @@ export default {
                     r.duration,
                     r.location,
                     r.security
-                ].map(cell => `"${cell}"`).join(',')
+                ].map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
             );
 
             // UTF-8 BOM hozzáadása (\uFEFF)
@@ -215,6 +228,8 @@ export default {
         activeTab(val) {
             if (val === "gdprExport") {
                 this.fetchGdprData();
+            } else if (val === "orders") {
+                this.fetchOrders();
             }
         }
     }

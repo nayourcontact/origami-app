@@ -17,8 +17,8 @@ const content = computed(() => t(lang.value, 'privacyPolicyContent'))
 <template>
   <Teleport to="body">
     <div v-if="props.show" class="modal-overlay">
-      <div class="modal privacy-modal">
-        <h3>{{ t(lang, 'privacy') }}</h3>
+      <div class="modal privacy-modal" role="dialog" aria-modal="true">
+      <h3>{{ t(lang, 'privacy') }}</h3>
         <div class="modal-content">
           <p v-for="(block, index) in content" :key="index" v-html="block"/>
         </div>

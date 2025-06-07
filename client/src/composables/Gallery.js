@@ -1,6 +1,7 @@
 import { ref } from "vue";
 import axios from "axios";
 import { API_BASE_URL, INSTAGRAM_USER_ID } from "../config.js";
+import { t } from "../locales";
 
 export const posts = ref([]);
 export const isLoading = ref(false);
@@ -10,7 +11,7 @@ export const page = ref(1);
 const limit = 21;
 let lastCall = 0;
 
-export async function loadMorePosts() {
+export async function loadMorePosts(currentLanguage) {
     const now = Date.now();
     if (isLoading.value || !hasMore.value || now - lastCall < 500) return;
 
@@ -32,8 +33,11 @@ export async function loadMorePosts() {
     } catch (err) {
         console.error("Could not load more posts:", err);
         setTimeout(() => {
-            window.showToast?.("Nem sikerült a gallériát betölteni. Próbáld újra később!", "error");
-        }, );
+            window.showToast?.(
+                t(currentLanguage.value, "errorGalleryLoad"),
+                "error"
+            );
+        });
     } finally {
         isLoading.value = false;
     }

@@ -40,6 +40,7 @@
 <script>
 import axios from 'axios';
 import {API_BASE_URL} from "../config";
+import CryptoJS from "crypto-js";
 
 export default {
   name: 'AdminLogin',
@@ -60,7 +61,8 @@ export default {
 
         const {token, role} = response.data
 
-        localStorage.setItem('adminToken', token)
+        const encryptedToken = CryptoJS.AES.encrypt(token, "secretKey").toString();
+        localStorage.setItem("adminToken", encryptedToken);
         localStorage.setItem('role', role)
 
         await this.$router.push('/admin/dashboard')

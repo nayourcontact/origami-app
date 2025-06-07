@@ -1,13 +1,22 @@
 import axios from 'axios';
+import CryptoJS from 'crypto-js';
 
 const instance = axios.create({
     baseURL: '/api',
 });
 
 instance.interceptors.request.use((config) => {
-    const token = localStorage.getItem('adminToken');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+    const encrypted = localStorage.getItem('adminToken');
+    if (encrypted) {
+        try {
+            const bytes = CryptoJS.AES.decrypt(encrypted, "secretKey");
+            const decryptedToken = bytes.toString(CryptoJS.enc.Utf8);
+            if (decryptedToken) {
+                config.headers.Authorization = `Bearer ${decryptedToken}`;
+            }
+        } catch (e) {
+            console.error("Token decryption failed:", e);
+        }
     }
     return config;
 }, (error) => {

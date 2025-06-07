@@ -62,7 +62,7 @@
       </div>
 
       <div class="modal-caption-side" v-if="selectedPost?.caption">
-        <p class="modal-caption">{{ selectedPost.caption }}</p>
+        <p class="modal-caption">{{ cleanCaption }}</p>
       </div>
     </div>
   </div>
@@ -81,6 +81,7 @@ import {useRoute} from "vue-router";
 import {t} from "../locales";
 import "../assets/styles/Gallery.css";
 import gsap from "gsap";
+import DOMPurify from "isomorphic-dompurify";
 
 const route = useRoute();
 const currentLanguage = computed(() => route.params.lang || "hu");
@@ -92,6 +93,15 @@ const loadMoreTrigger = ref(null);
 const headingSection = ref(null);
 const gallerySection = ref(null);
 let observer = null;
+
+const cleanCaption = computed(() => {
+  return selectedPost.value?.caption
+      ? DOMPurify.sanitize(selectedPost.value.caption, {
+        ALLOWED_TAGS: [],
+        ALLOWED_ATTR: []
+      })
+      : "";
+});
 
 onMounted(async () => {
   await nextTick();
@@ -105,7 +115,7 @@ onMounted(async () => {
   posts.value = [];
   page.value = 1;
   hasMore.value = true;
-  await loadMorePosts();
+  await loadMorePosts(currentLanguage);
 
   observer = new IntersectionObserver(
       (entries) => {
