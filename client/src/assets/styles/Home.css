@@ -1,5 +1,5 @@
 .scroll-container {
-    overflow: hidden;
+    /*overflow: hidden;*/
     position: relative;
 }
 
@@ -24,13 +24,13 @@
 
 .gallery-section {
     position: relative;
-    padding: 4rem 2rem;
+    padding: 0.5rem 2rem;
 }
 
-.gallery-grid {
+.gallery-grid-six {
     display: grid;
-    gap: 1.8rem;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(10px, 5fr)) !important;
     justify-content: center;
 }
 

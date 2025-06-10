@@ -69,11 +69,13 @@ export async function initNewSixPosts(currentLanguage) {
 
         posts.value = allPosts
             .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-            .slice(0, 6);
+            .slice(1, 7);
 
-        const iCarPost = allPosts.find(post => post.caption?.includes("Icar (Ίκαρος)"));
-        if (iCarPost) {
-            introImage.value = iCarPost.mediaUrl;
+        const highlightRes = await axios.get(`${API_BASE_URL}/api/posts/highlight/${INSTAGRAM_USER_ID}`);
+        const icarPost = highlightRes.data?.post;
+
+        if (icarPost) {
+            introImage.value = icarPost.mediaUrl;
         } else {
             introImage.value = allPosts[0]?.mediaUrl || null;
         }

@@ -5,7 +5,7 @@
   </section>
 
   <section ref="galleryWrapper" class="gallery-section">
-    <div class="gallery-grid">
+    <div class="gallery-grid-six">
       <div v-for="(post, index) in posts" :key="index" class="gallery-item">
         <img v-if="post.mediaType === 'IMAGE' || post.mediaType === 'CAROUSEL_ALBUM'" :src="post.mediaUrl"
              alt="Origami kép"/>

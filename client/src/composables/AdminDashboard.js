@@ -1,4 +1,4 @@
-import api from "../../../server/utils/axios.js";
+import api from "../axios.js";
 import {API_BASE_URL, INSTAGRAM_USER_ID} from "../config.js";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -137,38 +137,28 @@ export default {
             });
         },
         async saveNewToken() {
-            if (!this.newToken || !this.newClientSecret) {
-                window.showToast?.("Token és Client Secret megadása kötelező.", "error");
+            if (!this.newToken) {
+                window.showToast?.("Token megadása kötelező.", "error");
                 return;
             }
 
             try {
-                const validation = await api.get(`${API_BASE_URL}/api/token/validate/${INSTAGRAM_USER_ID}`);
-                if (!validation.data.valid) {
-                    window.showToast?.("A token érvénytelen: " + validation.data.error, "error");
-                    return;
-                }
-
-                const refresh = await api.post(`${API_BASE_URL}/api/token/refresh`, {
-                    userId: INSTAGRAM_USER_ID
-                });
-
-                const expiresAt = refresh.data?.expiresAt;
+                // 60 nap múlva lejár (long-lived IG token élettartama)
+                const expiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
 
                 await api.post(`${API_BASE_URL}/api/token`, {
                     token: this.newToken,
-                    clientSecret: this.newClientSecret,
+                    clientSecret: "bff9573424b52cb5388c56a772d67103", // fixen backend számára
                     userId: INSTAGRAM_USER_ID,
                     expiresAt
                 });
 
-                this.saveTokenMessage = "Token sikeresen frissítve!";
+                this.saveTokenMessage = "✅ Token sikeresen frissítve!";
                 this.newToken = '';
-                this.newClientSecret = '';
-                this.fetchStatus(); // frissítjük a UI-t is
+                this.fetchStatus(); // új állapot betöltése
             } catch (err) {
                 console.error("Token mentés hiba:", err);
-                window.showToast?.("Hiba történt a mentés során.", "error");
+                window.showToast?.("❌ Hiba történt a mentés során.", "error");
             }
         },
         downloadCSV() {

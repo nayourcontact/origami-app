@@ -61,6 +61,7 @@ const refreshInstagramToken = async (userId) => {
     }
 
     try {
+        console.log('Sending refresh request for token:', record.token);
         const response = await axios.get('https://graph.instagram.com/refresh_access_token', {
             params: {
                 grant_type: 'ig_refresh_token',

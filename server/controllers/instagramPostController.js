@@ -1,9 +1,25 @@
 const {
     fetchInstagramPosts,
     getInstagramImagesByUser,
-    getInstagramVideosByUser
+    getInstagramVideosByUser,
+    getHighlightedPost
 } = require('../services/instagramPostService');
 const InstagramPost = require('../models/Post');
+
+const getHighlightPost = async (req, res, next) => {
+    try {
+        const userId = req.params.userId;
+        const post = await getHighlightedPost(userId);
+
+        if (!post) {
+            return res.status(404).json({ success: false, message: 'Highlighted post not found' });
+        }
+
+        res.json({ success: true, post });
+    } catch (err) {
+        next(err);
+    }
+};
 
 const getPosts = async (req, res, next) => {
     const userId = req.params.userId;
@@ -71,5 +87,6 @@ module.exports = {
     getPosts,
     getImagePosts,
     getVideoPosts,
-    deleteAllPosts
+    deleteAllPosts,
+    getHighlightPost
 };

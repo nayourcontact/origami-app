@@ -17,7 +17,7 @@
 
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
     gap: 1rem;
     background-color: rgba(255, 255, 255, 0.5);
     padding: 1rem;

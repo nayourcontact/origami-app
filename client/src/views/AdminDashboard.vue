@@ -32,9 +32,6 @@
             <label class="dashboard-label">🔑 Új token:</label>
             <input v-model="newToken" placeholder="🔓 Access Token..." class="dashboard-input"/>
 
-            <label class="dashboard-label">🧷 Új Client Secret:</label>
-            <input v-model="newClientSecret" placeholder="🛡️ Client Secret..." class="dashboard-input"/>
-
             <button class="dashboard-button" @click="saveNewToken">💾 Mentés</button>
 
             <p v-if="saveTokenMessage" class="text-green-600 font-medium mt-2">
@@ -46,20 +43,39 @@
         <!-- Token Status -->
         <div class="dashboard-card mb-4" @click="fetchStatus">
           <h2 class="dashboard-subtitle">📡 Token állapot</h2>
-          <p v-if="status?.tokenInfo?.error" class="text-red-500">⚠️ {{ status.tokenInfo.error }}</p>
+
+          <p v-if="status?.tokenInfo?.error" class="text-red-500">
+            ⚠️ {{ status.tokenInfo.error }}
+          </p>
+
+          <p v-else-if="status?.tokenInfo" class="text-green-600">
+            ✅ Token érvényes és működik
+          </p>
         </div>
 
         <!-- Token Request -->
-        <div v-if="!status?.api" class="dashboard-card mb-4 bg-red-100 border border-red-300">
-          <h2 class="dashboard-subtitle text-red-700">🔁 Új token igénylése</h2>
+        <div class="dashboard-card mb-4 bg-blue-50 border border-blue-300">
+          <h2 class="dashboard-subtitle text-blue-800">🔁 Új token igénylése</h2>
+          <p class="text-sm text-gray-700 mb-2">
+            A frissített tokenhez látogasd meg a <strong>Meta for Developers</strong> konzolt, jelentkezz be a saját Instagram fiókoddal, majd generálj új token-t a beépített „Generate Token” funkcióval.
+          </p>
+
+          <ol class="list-decimal list-inside text-gray-700 text-sm mb-3" style="color: #575757">
+            <li>Nyisd meg az <strong>API Setup</strong> oldalt:</li>
+            <li>Jelentkezz be az Instagram Business fiókkal</li>
+            <li>Kattints a <strong>Generate Token</strong> gombra</li>
+            <li>Másold ki az új access token-t, és illeszd be a fenti ✏️ szerkesztőbe</li>
+          </ol>
+
           <a
-              href="https://developers.facebook.com/tools/explorer/"
+              href="https://developers.facebook.com/apps/631657789690032/instagram-business/API-Setup/"
               target="_blank"
-              class="dashboard-button bg-red-500 text-white"
+              class="dashboard-button bg-blue-600 text-white"
           >
-            🌐 Facebook Graph Explorer megnyitása
+            🌐 Nyisd meg az Instagram API Setup oldalt
           </a>
         </div>
+
       </section>
 
       <!-- LANGUAGE -->

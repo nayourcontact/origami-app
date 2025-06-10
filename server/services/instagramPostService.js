@@ -83,8 +83,16 @@ const getInstagramImagesByUser = async (userId) => {
     }).lean();
 };
 
+const getHighlightedPost = async (userId) => {
+    return InstagramPost.findOne({
+        userId,
+        caption: { $regex: /Icar\s*\(Ίκαρος\)/i }
+    }).lean();
+};
+
 module.exports = {
     fetchInstagramPosts,
     getInstagramVideosByUser,
     getInstagramImagesByUser,
+    getHighlightedPost
 };

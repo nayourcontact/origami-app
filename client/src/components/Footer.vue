@@ -115,6 +115,14 @@
         </a>
       </div>
 
+      <BaseButton
+          variant="link"
+          size="sm"
+          @click="openCookieSettings"
+      >
+        🍪 {{ t(currentLanguage, 'cookieSettingsLink') }}
+      </BaseButton>
+
       <p class="copyright">© 2025 origamialfredo | {{ t(currentLanguage, 'footerText') }}</p>
     </div>
   </footer>
@@ -151,6 +159,12 @@ const consentGiven = ref(false);
 function openPrivacyModal() {
   showPrivacy.value = true;
 }
+
+function openCookieSettings() {
+  localStorage.removeItem('cookieConsent')
+  location.reload()
+}
+
 
 function mapBackendMessageToKey(message) {
   const map = {

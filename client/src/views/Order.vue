@@ -45,7 +45,7 @@
         <label class="checkbox-label">
           <input type="checkbox" v-model="consentGiven" class="checkbox-input"/>
           <span>
-            {{ t(currentLanguage, 'consentText') }}
+            {{ t(currentLanguage, 'orderConsentText') }}
             <a
                 href="#"
                 @click.prevent="openPrivacyModal"

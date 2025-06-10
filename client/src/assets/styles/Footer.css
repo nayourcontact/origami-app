@@ -177,3 +177,19 @@
     text-align: center;
     text-transform: uppercase;
 }
+
+.cookie-footer-link {
+    font-size: 14px;
+    font-family: "Poppins", sans-serif;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    color: #d1d1d1;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: color 0.3s ease;
+}
+
+.cookie-footer-link:hover {
+    color: #00ceff;
+}

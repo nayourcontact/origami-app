@@ -4,7 +4,8 @@ const {
     getPosts,
     getImagePosts,
     getVideoPosts,
-    deleteAllPosts
+    deleteAllPosts,
+    getHighlightPost
 } = require('../controllers/instagramPostController');
 
 const router = express.Router();
@@ -17,6 +18,15 @@ function handleValidationErrors(req, res, next) {
     }
     next();
 }
+
+router.get(
+    '/highlight/:userId',
+    [
+        param("userId").isString().notEmpty()
+    ],
+    handleValidationErrors,
+    getHighlightPost
+);
 
 // GET /:userId?page=1&limit=12
 router.get(

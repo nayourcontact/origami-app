@@ -6,6 +6,7 @@ import Footer from './components/Footer.vue'
 import axios from 'axios'
 import {API_BASE_URL, INSTAGRAM_USER_ID} from './config.js'
 import Toast from './components/Toast.vue'
+import CookieConsent from './components/CookieConsent.vue'
 
 const route = useRoute()
 const backgroundVideoUrl = ref(null)
@@ -31,8 +32,7 @@ watch(() => route.fullPath, () => {
   } else {
     document.body.classList.remove('admin-mode')
   }
-})
-
+});
 
 loadBackgroundVideo();
 </script>
@@ -58,5 +58,6 @@ loadBackgroundVideo();
     </div>
 
     <Toast />
+    <CookieConsent />
   </div>
 </template>

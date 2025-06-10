@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-const adminEmail = "galditakacsbertold@gmail.com";
+const adminEmail = "alfred.takacs92@gmail.com";
 
 /**
  * Egységes HTML sablon wrap
