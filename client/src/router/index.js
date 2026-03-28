@@ -50,14 +50,14 @@ const routes = [
             description: (lang) => t(lang, "tutorialDescription"),
         },
     },
-    {
+    /*{
         path: "/:lang(hu|en)/order",
         component: Order,
         meta: {
             title: (lang) => t(lang, "orderTitle"),
             description: (lang) => t(lang, "orderDescription"),
         },
-    },
+    },*/
     {
         path: "/:lang(hu|en)/:pathMatch(.*)*",
         component: NotFound,

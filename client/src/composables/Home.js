@@ -41,6 +41,8 @@ export function initAnimations() {
 export async function initBio(currentLanguage) {
     try {
         const res = await axios.get(`${API_BASE_URL}/api/biography/${INSTAGRAM_USER_ID}`);
+        console.log(res);
+        console.log(`${API_BASE_URL}/api/biography/${INSTAGRAM_USER_ID}`)
         if (!res.data?.user?.biography) {
             const key = mapInstagramMessageToKey("Nem található biográfia az Instagramon.");
             window.showToast?.(t(currentLanguage, key || "instagramBioNotFound"), "info");
