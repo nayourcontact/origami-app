@@ -1,4 +1,4 @@
-const InstagramToken = require('../models/instagramToken');
+const InstagramToken = require('../models/InstagramToken');
 const {encrypt, decrypt} = require('../utils/encryption');
 const axios = require('axios');
 

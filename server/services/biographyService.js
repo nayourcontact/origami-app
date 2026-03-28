@@ -1,5 +1,5 @@
 const axios = require('axios');
-const Biography = require('../models/biography');
+const Biography = require('../models/Biography');
 const {getTokenByUserId} = require('./instagramTokenService');
 
 const INSTAGRAM_FIELDS = 'id,username,biography';
