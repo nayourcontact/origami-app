@@ -1,15 +1,15 @@
 const axios = require('axios');
 const Biography = require('../models/Biography');
-const {getTokenByUserId} = require('./instagramTokenService');
+const { getTokenByUserId } = require('./instagramTokenService');
 
 const INSTAGRAM_FIELDS = 'id,username,biography';
 
-const fetchBiography = async (userId) => {
+const fetchBiography = async (userId, forceRefresh = false) => {
     try {
-        // Check if cached
-        const cachedData = await Biography.findOne({igId: userId}).lean();
-        if (cachedData) {
-            return {data: cachedData, fromCache: true};
+        // Check cache first
+        const cachedData = await Biography.findOne({ igId: userId.toString() }).lean();
+        if (!forceRefresh && cachedData) {
+            return { data: cachedData, fromCache: true };
         }
 
         // Get token
@@ -20,8 +20,8 @@ const fetchBiography = async (userId) => {
             throw err;
         }
 
-        // Call Instagram
-        const response = await axios.get(`https://graph.instagram.com/${userId}`, {
+        // Call Instagram with /me
+        const response = await axios.get('https://graph.instagram.com/me', {
             params: {
                 fields: INSTAGRAM_FIELDS,
                 access_token: tokenRecord.token,
@@ -29,14 +29,15 @@ const fetchBiography = async (userId) => {
             timeout: 5000,
         });
 
-        const {id, username, biography} = response.data;
+        const { id, username, biography } = response.data;
 
         // Update DB
         const updatedDoc = await Biography.findOneAndUpdate(
-            {igId: id.toString()},
+            { igId: id.toString() },
             {
+                igId: id.toString(),
                 username,
-                biography,
+                biography: biography || '',
                 updatedAt: new Date(),
             },
             {
@@ -46,8 +47,7 @@ const fetchBiography = async (userId) => {
             }
         );
 
-        return {data: updatedDoc, fromCache: false};
-
+        return { data: updatedDoc, fromCache: false };
     } catch (error) {
         const isAxiosError = !!error?.response?.data?.error?.message;
 
@@ -55,16 +55,18 @@ const fetchBiography = async (userId) => {
         console.error('Raw error:', {
             message: error.message,
             stack: error.stack,
-            response: isAxiosError ? error.response.data.error : null
+            response: isAxiosError ? error.response.data.error : null,
         });
 
-        const err = new Error(isAxiosError
-            ? `Instagram API error: ${error.response.data.error.message}`
-            : error.message || 'Unknown error');
+        const err = new Error(
+            isAxiosError
+                ? `Instagram API error: ${error.response.data.error.message}`
+                : error.message || 'Unknown error'
+        );
 
         err.statusCode = isAxiosError ? 502 : 500;
         throw err;
     }
 };
 
-module.exports = {fetchBiography};
+module.exports = { fetchBiography };

@@ -19,7 +19,8 @@ const fetchInstagramPosts = async (userId) => {
         }
 
         let allPosts = [];
-        let nextUrl = `https://graph.instagram.com/me/media?fields=${INSTAGRAM_MEDIA_FIELDS}&access_token=${tokenRecord.token}`;
+        let nextUrl =
+            `https://graph.instagram.com/me/media?fields=id,media_type,media_url,thumbnail_url,caption,timestamp&access_token=${tokenRecord.token}`;
 
         while (nextUrl) {
             const response = await axios.get(nextUrl, {timeout: 5000});
