@@ -13,7 +13,7 @@ const app = express();
 const BASE_UPLOAD_ROOT =
     process.platform === 'win32'
         ? 'C:/origami_app/uploads'
-        : '/origami_app/uploads';
+        : '/home/app/origami_app/uploads';
 
 // Middleware
 app.use(helmet({
@@ -26,6 +26,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use('/uploads', express.static(BASE_UPLOAD_ROOT));
+app.set('trust proxy', 1);
 
 // Rate limiter (global)
 const globalLimiter = rateLimit({

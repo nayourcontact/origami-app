@@ -9,7 +9,7 @@ const INSTAGRAM_MEDIA_FIELDS = 'id,media_type,media_url,thumbnail_url,caption,ti
 const BASE_UPLOAD_ROOT =
     process.platform === 'win32'
         ? 'C:/origami_app/uploads'
-        : '/origami_app/uploads';
+: '/home/app/origami_app/uploads';
 
 const STORAGE_ROOT = path.join(BASE_UPLOAD_ROOT, 'instagram');
 
