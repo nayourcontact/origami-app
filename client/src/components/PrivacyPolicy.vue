@@ -1,29 +1,63 @@
 <script setup>
-import {useRoute} from 'vue-router'
-import {computed} from 'vue'
-import {t} from '../locales'
+import { useRoute } from 'vue-router'
+import { computed, onMounted, onBeforeUnmount } from 'vue'
+import { t } from '../locales'
+import BaseButton from '../components/BaseButton.vue'
 
-const props = defineProps({show: Boolean})
+const props = defineProps({
+  show: Boolean
+})
+
 const emit = defineEmits(['update:show'])
 
-const closeModal = () => emit('update:show', false)
+const closeModal = () => {
+  emit('update:show', false)
+}
 
 const route = useRoute()
 const lang = computed(() => route.params.lang || 'hu')
-
 const content = computed(() => t(lang.value, 'privacyPolicyContent'))
+
+const handleKeydown = (e) => {
+  if (e.key === 'Escape' && props.show) {
+    closeModal()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <template>
   <Teleport to="body">
-    <div v-if="props.show" class="modal-overlay">
-      <div class="modal privacy-modal" role="dialog" aria-modal="true">
-      <h3>{{ t(lang, 'privacy') }}</h3>
+    <div
+        v-if="show"
+        class="modal-overlay"
+        @click="closeModal"
+    >
+      <div
+          class="modal privacy-modal"
+          role="dialog"
+          aria-modal="true"
+          @click.stop
+      >
+        <h3>{{ t(lang, 'privacy') }}</h3>
+
         <div class="modal-content">
-          <p v-for="(block, index) in content" :key="index" v-html="block"/>
+          <p v-for="(block, index) in content" :key="index" v-html="block" />
         </div>
+
         <div class="modal-buttons">
-          <BaseButton @click="closeModal" variant="primary" size="sm">
+          <BaseButton
+              @click="closeModal"
+              variant="primary"
+              size="sm"
+          >
             {{ t(lang, 'close') }}
           </BaseButton>
         </div>
@@ -33,6 +67,16 @@ const content = computed(() => t(lang.value, 'privacyPolicyContent'))
 </template>
 
 <style scoped>
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
 .modal-content {
   max-height: 60vh;
   overflow-y: auto;
@@ -67,5 +111,4 @@ const content = computed(() => t(lang.value, 'privacyPolicyContent'))
   list-style: disc;
   margin-left: 2rem;
 }
-
 </style>

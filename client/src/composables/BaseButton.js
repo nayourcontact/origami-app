@@ -23,16 +23,22 @@ export function useBaseButton(props, emit) {
             secondary: "bg-gray-100 text-gray-800 hover:bg-gray-200",
             outline: "border border-gray-300 text-gray-700 hover:bg-gray-100",
             gradient: "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90",
+            "footer-icon": "footer-icon",
+            "footer-pill": "footer-pill",
         }[props.variant] || "bg-blue-600 text-white hover:bg-blue-700")
     );
 
-    const sizeClass = computed(() =>
-        ({
+    const sizeClass = computed(() => {
+        if (props.variant === "footer-icon" || props.variant === "footer-pill") {
+            return "";
+        }
+
+        return ({
             sm: "px-3 py-2 text-sm",
             md: "px-4 py-2 text-base",
             lg: "px-5 py-3 text-lg",
-        }[props.size] || "px-4 py-2 text-base")
-    );
+        }[props.size] || "px-4 py-2 text-base");
+    });
 
     return {
         icon: props.icon,

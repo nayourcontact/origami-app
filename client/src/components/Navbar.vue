@@ -1,6 +1,7 @@
 <template>
   <nav class="navbar">
-    <h1 class="logo">@origamialfredo</h1>
+    <h1 class="logo">    <img src="../assets/images/logo.png" class="bio-image"  alt="logo"/>
+    </h1>
     <div class="menu">
       <BaseButton
           v-for="(link, index) in navLinks"
@@ -15,6 +16,30 @@
           {{ t(language, link.label) }}
         </template>
       </BaseButton>
+
+      <BaseButton
+          variant="gradient"
+          size="sm"
+          icon="fab fa-instagram"
+          tooltip="Instagram"
+          @click="() => openExternal('https://www.instagram.com/origamialfredo/')"
+      />
+
+      <BaseButton
+          variant="gradient"
+          size="sm"
+          icon="fab fa-threads"
+          tooltip="Threads"
+          @click="() => openExternal('https://www.threads.net/@origamialfredo')"
+      />
+
+      <BaseButton
+          variant="gradient"
+          size="sm"
+          icon="fab fa-facebook"
+          tooltip="Facebook"
+          @click="() => openExternal('https://www.facebook.com/alfred.takacs')"
+      />
 
       <BaseButton
           variant="outline"
@@ -42,6 +67,10 @@ const router = useRouter();
 
 const storedLanguage = localStorage.getItem("language");
 const language = computed(() => route.params.lang || storedLanguage || "hu");
+
+const openExternal = (url) => {
+  window.open(url, "_blank", "noopener,noreferrer");
+};
 
 const navLinks = [
   {path: "/home", label: "", icon: "fas fa-home", tooltip: "homeTooltip"},

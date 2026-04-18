@@ -8,7 +8,7 @@ export const isLoading = ref(false);
 export const hasMore = ref(true);
 export const page = ref(1);
 
-const limit = 21;
+const limit = 35;
 let lastCall = 0;
 
 export async function loadMorePosts(currentLanguage) {

@@ -1,8 +1,8 @@
-// Express app config
 const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
+const path = require("path");
 const routes = require("./routes");
 const errorHandler = require("./utils/errorHandler");
 
@@ -10,20 +10,28 @@ require('./utils/tokenReminderJob');
 
 const app = express();
 
+const BASE_UPLOAD_ROOT =
+    process.platform === 'win32'
+        ? 'C:/origami_app/uploads'
+        : '/origami_app/uploads';
+
 // Middleware
-app.use(helmet());
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(cors({
     origin: [process.env.CLIENT_ORIGIN],
     methods: ["GET", "POST", "PUT"],
     credentials: true
 }));
 app.use(express.json());
+app.use('/uploads', express.static(BASE_UPLOAD_ROOT));
 
 // Rate limiter (global)
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: {message: "Too many requests. Please try again later."}
+    max: 1000,
+    message: { message: "Too many requests. Please try again later." }
 });
 app.use(globalLimiter);
 

@@ -1,7 +1,7 @@
 <template>
-  <section ref="headingSection" class="bio-section">
+<!--  <section ref="headingSection" class="bio-section">
     <h2 class="bio-heading">{{ t(currentLanguage, 'gallery') }}</h2>
-  </section>
+  </section>-->
 
   <section ref="gallerySection" class="gallery-section">
     <div class="gallery-scroll-container">
@@ -42,7 +42,9 @@
 
   <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
     <div class="modal-content modal-two-column">
+<!--
       <button class="close-button" @click="closeModal">×</button>
+-->
 
       <div class="modal-media">
         <img
@@ -61,9 +63,9 @@
         />
       </div>
 
-      <div class="modal-caption-side" v-if="selectedPost?.caption">
+<!--      <div class="modal-caption-side" v-if="selectedPost?.caption">
         <p class="modal-caption">{{ cleanCaption }}</p>
-      </div>
+      </div>-->
     </div>
   </div>
 </template>

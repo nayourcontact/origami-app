@@ -58,10 +58,49 @@ export async function initBio(currentLanguage) {
     }
 }
 
+const shuffle = (array) => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+};
+
+const fetchAllPosts = async () => {
+    const firstRes = await axios.get(
+        `${API_BASE_URL}/api/posts/${INSTAGRAM_USER_ID}?page=1&limit=100`
+    );
+
+    const firstPosts = firstRes.data?.posts || [];
+    const total = firstRes.data?.total || 0;
+    const pageCount = firstRes.data?.pageCount || 1;
+
+    let allPosts = [...firstPosts];
+
+    if (pageCount > 1) {
+        const requests = [];
+
+        for (let page = 2; page <= pageCount; page++) {
+            requests.push(
+                axios.get(`${API_BASE_URL}/api/posts/${INSTAGRAM_USER_ID}?page=${page}&limit=100`)
+            );
+        }
+
+        const responses = await Promise.all(requests);
+
+        for (const res of responses) {
+            const pagePosts = res.data?.posts || [];
+            allPosts.push(...pagePosts);
+        }
+    }
+
+    return allPosts.slice(0, total);
+};
+
 export async function initNewSixPosts(currentLanguage) {
     try {
-        const res = await axios.get(`${API_BASE_URL}/api/posts/${INSTAGRAM_USER_ID}`);
-        const allPosts = res.data?.posts || [];
+        const allPosts = await fetchAllPosts();
 
         if (!Array.isArray(allPosts) || !allPosts.length) {
             console.warn("Üres vagy hibás poszt lista.");
@@ -69,22 +108,33 @@ export async function initNewSixPosts(currentLanguage) {
             return;
         }
 
-        posts.value = allPosts
-            .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-            .slice(1, 7);
-
-        const highlightRes = await axios.get(`${API_BASE_URL}/api/posts/highlight/${INSTAGRAM_USER_ID}`);
+        const highlightRes = await axios.get(
+            `${API_BASE_URL}/api/posts/highlight/${INSTAGRAM_USER_ID}`
+        );
         const icarPost = highlightRes.data?.post;
 
+        let filteredPosts = allPosts;
+
         if (icarPost) {
-            introImage.value = icarPost.mediaUrl;
+            filteredPosts = allPosts.filter(post => post.igId !== icarPost.igId);
+            introImage.value = toAbsoluteMediaUrl(icarPost.mediaUrl);
         } else {
-            introImage.value = allPosts[0]?.mediaUrl || null;
+            introImage.value = toAbsoluteMediaUrl(allPosts[0]?.mediaUrl || null);
         }
+
+        posts.value = shuffle(filteredPosts).slice(0, 6);
     } catch (err) {
         console.error("Nem sikerült betölteni az Instagram posztokat:", err);
         posts.value = [];
-        const key = mapInstagramMessageToKey("Nem sikerült betölteni az Instagram posztokat. Próbálja meg később!");
+        const key = mapInstagramMessageToKey(
+            "Nem sikerült betölteni az Instagram posztokat. Próbálja meg később!"
+        );
         window.showToast?.(t(currentLanguage, key || "instagramPostsError"), "error");
     }
+}
+
+const toAbsoluteMediaUrl = (url) => {
+    if (!url) return null
+    if (url.startsWith('http://') || url.startsWith('https://')) return url
+    return `${API_BASE_URL}${url}`
 }

@@ -1,7 +1,10 @@
 <template>
   <section ref="viewWrapper" class="bio-section">
-    <h2 class="bio-heading">{{ bio.split('\n')[0] }}</h2>
-    <blockquote class="bio-quote">{{ bio.split('\n')[1] }}</blockquote>
+<!--<h2 class="bio-heading">{{ bio.split('\n')[0] }}</h2>-->
+    <h2 class="bio-heading">
+      {{ t(currentLanguage, 'homeMainTitle') }}
+    </h2>
+<!--    <blockquote class="bio-quote">{{ bio.split('\n')[1] }}</blockquote>-->
   </section>
 
   <section ref="galleryWrapper" class="gallery-section">

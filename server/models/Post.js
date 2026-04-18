@@ -6,12 +6,15 @@ const InstagramPostSchema = new mongoose.Schema({
     mediaType: String,
     mediaUrl: String,
     thumbnailUrl: String,
+    localMediaPath: String,
+    localThumbnailPath: String,
     caption: String,
     timestamp: {
         type: Date,
         required: false,
     },
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('InstagramPost', InstagramPostSchema);

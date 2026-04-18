@@ -92,38 +92,29 @@
         </label>
         <BaseButton
             :disabled="loading"
-            variant="gradient"
+            variant="footer-pill"
             size="sm"
-            :tooltip="t(currentLanguage, 'subscribeTooltip')"
+            icon="fas fa-paper-plane"
+            tooltip="subscribeTooltip"
             @click="handleSubscribe"
         >
-          <template #icon>
-            <i :class="['fas', 'fa-paper-plane', { 'animate-spin': loading }, 'text-white']"></i>
-          </template>
           {{ loading ? t(currentLanguage, 'subscribing') : t(currentLanguage, 'subscribe') }}
         </BaseButton>
       </div>
       <div class="social-links">
-        <a href="https://www.instagram.com/origamialfredo/" target="_blank" rel="noopener noreferrer">
-          <i class="fab fa-instagram social-icon"></i>
-        </a>
-        <a href="https://www.threads.net/@origamialfredo" target="_blank" rel="noopener noreferrer">
-          <i class="fab fa-threads social-icon"></i>
-        </a>
-        <a href="https://www.facebook.com/alfred.takacs" target="_blank" rel="noopener noreferrer">
-          <i class="fab fa-facebook social-icon"></i>
-        </a>
+
       </div>
 
       <BaseButton
-          variant="link"
-          size="sm"
+          variant="footer-pill"
+          icon="fas fa-cookie-bite"
+          tooltip="{{ loading ? t(currentLanguage, 'cookieSettingsLink') : t(currentLanguage, 'cookieSettingsLink') }}"
           @click="openCookieSettings"
       >
-        🍪 {{ t(currentLanguage, 'cookieSettingsLink') }}
+        Sütibeállítások
       </BaseButton>
 
-      <p class="copyright">© 2025 origamialfredo | {{ t(currentLanguage, 'footerText') }}</p>
+      <p class="copyright">© 2026 origamialfredo | {{ t(currentLanguage, 'footerText') }}</p>
     </div>
   </footer>
   <PrivacyModal v-model:show="showPrivacy"/>

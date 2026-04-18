@@ -58,34 +58,64 @@
 /* Bio section */
 .bio-section {
     font-family: 'Lora', serif;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(6px);
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
     border-radius: 1rem;
     padding: 2rem 1.5rem;
     margin: 3rem auto;
     max-width: 720px;
-    text-align: center;
-    color: white;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+
+    display: flex;              /* EZ AZ ÚJ */
+    align-items: center;        /* függőleges közép */
+    justify-content: space-between;
+    gap: 20px;
+
+    text-align: left;           /* ne legyen középre */
+    color: #000000;
+    box-shadow:
+            0 10px 30px rgba(0,0,0,0.25),
+            inset 0 1px 0 rgba(255,255,255,0.3);
 }
 
-.bio-heading,
-.bio-quote {
-    font-family: 'Lora', serif;
-    font-style: italic;
+/* szöveg */
+.bio-heading {
+    flex: 1;
+    margin: 0;
+}
+
+/* kép */
+.bio-image {
+    width: 120px;
+    height: auto;
+    flex-shrink: 0; /* ne nyomódjon össze */
+}
+
+/* mobilon is marad egymás mellett, csak kisebb */
+@media (max-width: 768px) {
+    .bio-section {
+        padding: 1.5rem 1rem;
+        gap: 12px;
+    }
+
+    .bio-image {
+        width: 80px;
+    }
+
+    .bio-heading {
+        font-size: 1.2rem;
+    }
 }
 
 .bio-heading {
-    font-style: italic;
-    font-weight: 600;
-}
-
-.bio-heading {
-    font-size: 1.75rem;
-    font-weight: 700;
+    font-family: 'MarckScript-Regular', cursive;
+    font-size: 2.8rem;
+    font-weight: 400;
     margin-bottom: 1rem;
-    line-height: 1.3;
-    letter-spacing: -0.3px;
+    line-height: 1.25;
+    letter-spacing: 0.2px;
+    color: #111111;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
 @media (min-width: 640px) {
@@ -181,13 +211,13 @@
 }
 
 .intro-text-section {
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(6px);
     border-radius: 1rem;
     padding: 2rem;
     margin: 4rem auto;
     max-width: 960px;
-    color: white;
+    color: #000000;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
@@ -208,7 +238,7 @@
     font-size: 1rem;
     white-space: pre-line;
     line-height: 1.7;
-    color: white;
+    color: #000000;
 }
 
 @media (min-width: 768px) {
@@ -226,4 +256,13 @@
         flex: 2;
         padding-left: 2rem;
     }
+}
+
+.gallery-item {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.gallery-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
 }

@@ -1,5 +1,5 @@
 <script setup>
-import {ref, computed, watch} from 'vue'
+import {ref, computed, watch, onMounted} from 'vue'
 import {useRoute} from 'vue-router'
 import Navbar from './components/Navbar.vue'
 import Footer from './components/Footer.vue'
@@ -13,13 +13,26 @@ const backgroundVideoUrl = ref(null)
 
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 
+const toAbsoluteMediaUrl = (url) => {
+  if (!url) return null
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  return `${API_BASE_URL}${url}`
+}
+
 const loadBackgroundVideo = async () => {
   try {
     const res = await axios.get(`${API_BASE_URL}/api/posts/videos/${INSTAGRAM_USER_ID}`)
     const videos = res.data?.posts || []
+
+    console.log('videos:', videos)
+
     if (videos.length > 0) {
-      const sorted = videos.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-      backgroundVideoUrl.value = sorted[0].mediaUrl
+      const sorted = [...videos].sort(
+          (a, b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
+      )
+
+      backgroundVideoUrl.value = toAbsoluteMediaUrl(sorted[0]?.mediaUrl || null)
+      console.log('backgroundVideoUrl:', backgroundVideoUrl.value)
     }
   } catch (err) {
     console.error('Could not load the background video:', err)
@@ -32,9 +45,11 @@ watch(() => route.fullPath, () => {
   } else {
     document.body.classList.remove('admin-mode')
   }
-});
+}, {immediate: true})
 
-loadBackgroundVideo();
+onMounted(() => {
+  loadBackgroundVideo()
+})
 </script>
 
 <template>
@@ -42,10 +57,18 @@ loadBackgroundVideo();
     <Navbar v-if="!isAdminRoute"/>
 
     <div class="video-wrapper" v-if="backgroundVideoUrl && !isAdminRoute">
-      <video autoplay loop muted playsinline class="background-video">
-        <source :src="backgroundVideoUrl" type="video/mp4"/>
-        Your browser does not support the video tag.
-      </video>
+      <video
+          :key="backgroundVideoUrl"
+          :src="backgroundVideoUrl"
+          autoplay
+          loop
+          muted
+          playsinline
+          crossorigin="anonymous"
+          class="background-video"
+          @error="e => console.error('VIDEO ERROR', e.target?.error, backgroundVideoUrl)"
+          @loadeddata="() => console.log('VIDEO LOADED', backgroundVideoUrl)"
+      />
     </div>
 
     <div id="scroll-container" data-scroll-container>
@@ -57,7 +80,7 @@ loadBackgroundVideo();
       </div>
     </div>
 
-    <Toast />
-    <CookieConsent />
+    <Toast/>
+    <CookieConsent/>
   </div>
 </template>

@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-
 .gallery-section {
     height: 100%;
     overflow: hidden;
@@ -8,7 +6,7 @@
 }
 
 .gallery-scroll-container {
-    height: 50vh;
+    height: 90vh;
     overflow-y: auto;
     padding: 1rem;
     border: 1px solid #ddd;

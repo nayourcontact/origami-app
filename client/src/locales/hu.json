@@ -55,7 +55,7 @@
   "instagramPostsError": "Nem sikerült betölteni az Instagram posztokat. Próbáld meg később!",
   "privacy": "Adatkezelési tájékoztató",
   "privacyTooltip": "Olvasd el az adatkezelési tájékoztatót!",
-  "consentText": "Hozzájárulok, hogy e-mail címemet a hírlevél küldés céljából kezeljék, és elfogadom az",
+  "consentText": "Elfogadom az adatkezelést és hozzájárulok a hírlevélhez",
   "orderConsentText": "Hozzájárulok, hogy a megadott adataimat a megrendelés feldolgozása és visszajelzés céljából kezeljék, és elfogadom az",
   "errorConsentRequired": "A feliratkozáshoz el kell fogadnod az adatkezelési tájékoztatót!",
   "verificationPlaceholder": "Írd be az ellenőrző kódot",
@@ -87,5 +87,6 @@
   "moreInfo": "További információk",
   "accept": "Elfogadom",
   "decline": "Elutasítom",
-  "cookieSettingsLink": "Sütibeállítások"
+  "cookieSettingsLink": "Sütibeállítások",
+  "homeMainTitle": "Takács Alfréd - Origami Művész"
 }
