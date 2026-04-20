@@ -23,24 +23,26 @@ const getHighlightPost = async (req, res, next) => {
 
 const getPosts = async (req, res, next) => {
     const userId = req.params.userId;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 12;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 12;
 
     try {
-        await fetchInstagramPosts(userId);
+        const result = await fetchInstagramPosts(userId);
+        const allPosts = Array.isArray(result?.data) ? result.data : [];
 
+        const sortedPosts = allPosts.sort((a, b) => {
+            const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+            const bTime = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+            return bTime - aTime;
+        });
+
+        const total = sortedPosts.length;
         const skip = (page - 1) * limit;
-        const posts = await InstagramPost.find({ userId })
-            .sort({ timestamp: -1 })
-            .skip(skip)
-            .limit(limit)
-            .lean();
-
-        const total = await InstagramPost.countDocuments({ userId });
+        const pagedPosts = sortedPosts.slice(skip, skip + limit);
 
         res.json({
             success: true,
-            posts,
+            posts: pagedPosts,
             total,
             page,
             pageCount: Math.ceil(total / limit)

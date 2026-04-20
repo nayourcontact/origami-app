@@ -1,5 +1,6 @@
 <script setup>
-import {ref, computed, watch, onMounted} from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { initLenis, refreshLenis } from './composables/LenisSingleton.js'
 import {useRoute} from 'vue-router'
 import Navbar from './components/Navbar.vue'
 import Footer from './components/Footer.vue'
@@ -23,32 +24,44 @@ const loadBackgroundVideo = async () => {
   try {
     const res = await axios.get(`${API_BASE_URL}/api/posts/videos/${INSTAGRAM_USER_ID}`)
     const videos = res.data?.posts || []
-
-    console.log('videos:', videos)
-
     if (videos.length > 0) {
       const sorted = [...videos].sort(
           (a, b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
       )
-
       backgroundVideoUrl.value = toAbsoluteMediaUrl(sorted[0]?.mediaUrl || null)
-      console.log('backgroundVideoUrl:', backgroundVideoUrl.value)
     }
   } catch (err) {
     console.error('Could not load the background video:', err)
   }
 }
 
-watch(() => route.fullPath, () => {
+watch(() => route.fullPath, async () => {
   if (route.path.startsWith('/admin')) {
     document.body.classList.add('admin-mode')
   } else {
     document.body.classList.remove('admin-mode')
   }
-}, {immediate: true})
 
-onMounted(() => {
-  loadBackgroundVideo()
+  await nextTick()
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      refreshLenis()
+    })
+  })
+}, { immediate: true })
+
+onMounted(async () => {
+  await loadBackgroundVideo()
+
+  await nextTick()
+  initLenis()
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      refreshLenis()
+      window.dispatchEvent(new Event('resize'))
+    })
+  })
 })
 </script>
 
@@ -64,19 +77,19 @@ onMounted(() => {
           loop
           muted
           playsinline
+          preload="metadata"
           crossorigin="anonymous"
           class="background-video"
           @error="e => console.error('VIDEO ERROR', e.target?.error, backgroundVideoUrl)"
-          @loadeddata="() => console.log('VIDEO LOADED', backgroundVideoUrl)"
       />
     </div>
 
-    <div id="scroll-container" data-scroll-container>
-      <div class="page-layout" data-scroll-section>
+    <div id="scroll-container">
+      <div class="page-layout">
         <main class="scroll-page">
-          <RouterView :key="$route.fullPath"/>
+          <RouterView :key="$route.fullPath" />
         </main>
-        <Footer v-if="!isAdminRoute"/>
+        <Footer v-if="!isAdminRoute" />
       </div>
     </div>
 

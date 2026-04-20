@@ -11,7 +11,7 @@
     <div class="gallery-grid-six">
       <div v-for="(post, index) in posts" :key="index" class="gallery-item">
         <img v-if="post.mediaType === 'IMAGE' || post.mediaType === 'CAROUSEL_ALBUM'" :src="post.mediaUrl"
-             alt="Origami kép"/>
+             alt="Origami kép" loading="lazy" decoding="async"/>
         <video
             v-else-if="post.mediaType === 'VIDEO'"
             :src="post.mediaUrl"
@@ -19,6 +19,7 @@
             muted
             loop
             playsinline
+            preload="metadata"
         />
       </div>
     </div>
@@ -27,7 +28,12 @@
   <section ref="introWrapper" class="intro-text-section">
     <div class="intro-content-wrapper">
       <div class="intro-image">
-        <img v-if="introImage" :src="introImage" alt="Icar origami"/>
+        <img
+            v-if="introImage"
+            :src="introImage"
+            alt="Icar origami"
+            decoding="async"
+        />
       </div>
       <div class="intro-text-container">
         <p>
@@ -47,7 +53,6 @@ import {
   posts,
   introImage,
   bio,
-  initAnimations,
   initBio,
   initNewSixPosts
 } from "../composables/Home.js";
@@ -65,7 +70,6 @@ const route = useRoute();
 const currentLanguage = route.params.lang || "hu";
 
 onMounted(() => {
-  initAnimations();
   initBio(currentLanguage);
   initNewSixPosts(currentLanguage);
 

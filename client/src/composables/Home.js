@@ -1,8 +1,5 @@
 import {ref} from "vue";
 import axios from "axios";
-import gsap from "gsap";
-import ScrollTrigger from "gsap/ScrollTrigger";
-import Lenis from "@studio-freight/lenis";
 import {API_BASE_URL, INSTAGRAM_USER_ID} from "../config.js";
 import {t} from "../locales";
 import DOMPurify from "isomorphic-dompurify";
@@ -21,28 +18,9 @@ function mapInstagramMessageToKey(message) {
     return map[message] || null;
 }
 
-export function initAnimations() {
-    gsap.registerPlugin(ScrollTrigger);
-
-    const lenis = new Lenis({
-        duration: 1.2,
-        easing: (t) => 1 - Math.pow(1 - t, 3),
-        smoothWheel: true,
-    });
-
-    function raf(time) {
-        lenis.raf(time);
-        requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-}
-
 export async function initBio(currentLanguage) {
     try {
         const res = await axios.get(`${API_BASE_URL}/api/biography/${INSTAGRAM_USER_ID}`);
-        console.log(res);
-        console.log(`${API_BASE_URL}/api/biography/${INSTAGRAM_USER_ID}`)
         if (!res.data?.user?.biography) {
             const key = mapInstagramMessageToKey("Nem található biográfia az Instagramon.");
             window.showToast?.(t(currentLanguage, key || "instagramBioNotFound"), "info");
@@ -72,7 +50,7 @@ const fetchAllPosts = async () => {
         `${API_BASE_URL}/api/posts/${INSTAGRAM_USER_ID}?page=1&limit=100`
     );
 
-    const firstPosts = firstRes.data?.posts || [];
+    const firstPosts = (firstRes.data?.posts || []).map(normalizePostMedia);
     const total = firstRes.data?.total || 0;
     const pageCount = firstRes.data?.pageCount || 1;
 
@@ -90,13 +68,19 @@ const fetchAllPosts = async () => {
         const responses = await Promise.all(requests);
 
         for (const res of responses) {
-            const pagePosts = res.data?.posts || [];
+            const pagePosts = (res.data?.posts || []).map(normalizePostMedia);
             allPosts.push(...pagePosts);
         }
     }
 
     return allPosts.slice(0, total);
 };
+
+const normalizePostMedia = (post) => ({
+    ...post,
+    mediaUrl: toAbsoluteMediaUrl(post.mediaUrl),
+    thumbnailUrl: toAbsoluteMediaUrl(post.thumbnailUrl),
+});
 
 export async function initNewSixPosts(currentLanguage) {
     try {
@@ -122,7 +106,13 @@ export async function initNewSixPosts(currentLanguage) {
             introImage.value = toAbsoluteMediaUrl(allPosts[0]?.mediaUrl || null);
         }
 
-        posts.value = shuffle(filteredPosts).slice(0, 6);
+        const normalizedPosts = filteredPosts.map(post => ({
+            ...post,
+            mediaUrl: toAbsoluteMediaUrl(post.mediaUrl),
+            thumbnailUrl: toAbsoluteMediaUrl(post.thumbnailUrl),
+        }));
+
+        posts.value = shuffle(normalizedPosts).slice(0, 6);
     } catch (err) {
         console.error("Nem sikerült betölteni az Instagram posztokat:", err);
         posts.value = [];

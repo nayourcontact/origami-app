@@ -108,10 +108,10 @@
       <BaseButton
           variant="footer-pill"
           icon="fas fa-cookie-bite"
-          tooltip="{{ loading ? t(currentLanguage, 'cookieSettingsLink') : t(currentLanguage, 'cookieSettingsLink') }}"
+          :tooltip="t(currentLanguage, 'cookieSettingsLink')"
           @click="openCookieSettings"
       >
-        Sütibeállítások
+        {{ t(currentLanguage, 'cookieSettingsLink') }}
       </BaseButton>
 
       <p class="copyright">© 2026 origamialfredo | {{ t(currentLanguage, 'footerText') }}</p>
