@@ -55,6 +55,13 @@
     border-radius: 10px;
 }
 
+@media (max-width: 768px) {
+    .gallery-item video,
+    .gallery-item img {
+        height: 6rem; !important;
+    }
+}
+
 /* Bio section */
 .bio-section {
     font-family: 'Lora', serif;
@@ -265,4 +272,36 @@
 .gallery-item:hover {
     transform: scale(1.05);
     box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 64px 0 0;
+    }
+
+    .scroll-container {
+        min-height: calc(100vh - 64px - 72px);
+    }
+
+    .intro-section {
+        min-height: unset;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    .scroll-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .intro-section,
+    .intro-text-section,
+    .bio-section,
+    .gallery-section {
+        width: 100%;
+        max-width: 420px;   /* mobilon szép kártyaszélesség */
+        margin-left: auto;
+        margin-right: auto;
+    }
 }

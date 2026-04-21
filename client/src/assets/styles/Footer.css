@@ -271,5 +271,84 @@
 @media (min-width: 768px) {
     .newsletter-consent span {
         white-space: nowrap;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 768px) {
+    .footer {
+        position: relative;
+        width: 100vw;
+        margin-left: 0;
+        margin-right: 0;
+
+        display: flex;
+        justify-content: center;
+        padding: 2rem 1rem;
+
+        box-sizing: border-box;
+        border-radius: 28px;
+    }
+
+    .footer-content {
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.25rem;
+
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .newsletter {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .newsletter label {
+        text-align: center;
+    }
+
+    .email-input {
+        flex: unset;
+        height: 44px;
+        border-radius: 12px;
+        padding: 0 14px;
+        box-sizing: border-box;
+    }
+
+    .subscribe-btn {
+        width: 100%;
+        justify-content: center;
+        height: 44px;
+        border-radius: 12px;
+    }
+
+    .newsletter-consent {
+        justify-content: center;
+        text-align: center;
+        align-items: flex-start;
+        gap: 0.5rem;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .cookie-footer-link {
+        margin-top: 0.5rem;
+    }
+
+    .copyright {
+        font-size: 12px;
+        opacity: 0.7;
     }
 }
