@@ -305,3 +305,117 @@
         margin-right: auto;
     }
 }
+
+.profile-card {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1rem 1.4rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+    width: fit-content;
+    margin-bottom: 1.5rem;
+}
+
+.profile-image-ring {
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    padding: 4px;
+    background: linear-gradient(135deg, #f59e0b, #f97316, #166534);
+    flex-shrink: 0;
+}
+
+.profile-image-ring img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    border-radius: 50%;
+    display: block;
+    border: 3px solid white;
+}
+
+.profile-info h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1f1f1f;
+}
+
+.profile-info p {
+    margin: 0.2rem 0 0;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+@media (max-width: 768px) {
+    .profile-card {
+        margin-inline: auto;
+        flex-direction: column;
+        border-radius: 28px;
+        text-align: center;
+    }
+
+    .profile-image-ring {
+        width: 120px;
+        height: 120px;
+    }
+}
+
+.profile-image-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 320px;
+}
+
+.profile-image-ring {
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    padding: 6px;
+
+    background:
+            linear-gradient(
+                    135deg,
+                    #f59e0b,
+                    #ea580c,
+                    #166534
+            );
+
+    box-shadow:
+            0 20px 45px rgba(0,0,0,0.28),
+            0 0 40px rgba(245,158,11,0.18);
+
+    position: relative;
+}
+
+.profile-image-ring img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.9);
+
+    display: block;
+}
+
+@media (max-width: 768px) {
+
+    .profile-image-ring {
+        width: 220px;
+        height: 220px;
+    }
+
+    .profile-image-wrapper {
+        min-width: unset;
+        margin-bottom: 1.5rem;
+    }
+
+}
+

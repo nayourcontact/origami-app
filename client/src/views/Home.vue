@@ -1,10 +1,9 @@
 <template>
   <section ref="viewWrapper" class="bio-section">
-<!--<h2 class="bio-heading">{{ bio.split('\n')[0] }}</h2>-->
+    <!--<h2 class="bio-heading">{{ bio.split('\n')[0] }}</h2>-->
     <h2 class="bio-heading">
       {{ t(currentLanguage, 'homeMainTitle') }}
     </h2>
-<!--    <blockquote class="bio-quote">{{ bio.split('\n')[1] }}</blockquote>-->
   </section>
 
   <section ref="galleryWrapper" class="gallery-section">
@@ -27,22 +26,25 @@
 
   <section ref="introWrapper" class="intro-text-section">
     <div class="intro-content-wrapper">
-      <div class="intro-image">
-        <img
-            v-if="introImage"
-            :src="introImage"
-            alt="Icar origami"
-            decoding="async"
-        />
+
+      <div class="intro-image profile-image-wrapper">
+        <div class="profile-image-ring">
+          <img
+              src="../assets/images/profile.jpg"
+              alt="Takács Alfréd origami művész"
+              decoding="async"
+          />
+        </div>
       </div>
+
       <div class="intro-text-container">
         <p>
-          <span v-for="(line, idx) in t(currentLanguage, 'introText').split('\n')" :key="idx">
-            {{ line }}<br />
-          </span>
+        <span v-for="(line, idx) in t(currentLanguage, 'introText').split('\n')" :key="idx">
+          {{ line }}<br/>
+        </span>
         </p>
-
       </div>
+
     </div>
   </section>
 
@@ -61,7 +63,7 @@ import "../assets/styles/Home.css";
 import gsap from "gsap";
 import {ref, onMounted} from "vue";
 import {useRoute} from "vue-router";
-import { t } from "../locales";
+import {t} from "../locales";
 
 const viewWrapper = ref(null);
 const galleryWrapper = ref(null);
