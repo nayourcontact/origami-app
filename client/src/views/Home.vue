@@ -46,6 +46,22 @@
       </div>
 
     </div>
+
+    <div class="contact-card">
+      <h3>Kapcsolat</h3>
+
+      <p>
+        Ha kérdésed van a munkáimmal kapcsolatban, vagy szeretnél kapcsolatba
+        lépni velem, írj az alábbi email címre.
+      </p>
+
+      <a
+          href="mailto:alfred.takacs92@gmail.com"
+          class="contact-email"
+      >
+        ✉ alfred.takacs92@gmail.com
+      </a>
+    </div>
   </section>
 
 </template>

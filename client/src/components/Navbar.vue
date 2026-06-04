@@ -20,6 +20,14 @@
       <BaseButton
           variant="gradient"
           size="sm"
+          icon="fas fa-envelope"
+          tooltip="alfred.takacs92@gmail.com"
+          @click="() => openExternal('mailto:alfred.takacs92@gmail.com')"
+      />
+
+      <BaseButton
+          variant="gradient"
+          size="sm"
           icon="fab fa-instagram"
           tooltip="Instagram"
           @click="() => openExternal('https://www.instagram.com/origamialfredo/')"

@@ -62,7 +62,7 @@
 
   <footer class="footer">
     <div class="footer-content">
-      <div class="newsletter flex flex-col items-start gap-2">
+<!--      <div class="newsletter flex flex-col items-start gap-2">
         <input
             type="email"
             v-model.trim="email"
@@ -100,7 +100,7 @@
         >
           {{ loading ? t(currentLanguage, 'subscribing') : t(currentLanguage, 'subscribe') }}
         </BaseButton>
-      </div>
+      </div>-->
       <div class="social-links">
 
       </div>
