@@ -31,14 +31,14 @@ function show(messageText, toastType = "info") {
 }
 
 onMounted(() => {
-  /*window.showToast = show;
+  window.showToast = show;
 
   window.addEventListener("show-toast", (e) => {
     const {message: msg, type: t} = e.detail || {};
     if (typeof msg === "string") {
       show(msg, t);
     }
-  });*/
+  });
 });
 </script>
 

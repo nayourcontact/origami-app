@@ -277,3 +277,23 @@
     font-weight: 600;
     color: #111827; /* fejléchez is erős kontraszt */
 }
+
+.event-admin-item {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    background: #fff;
+}
+
+.event-preview {
+    max-width: 260px;
+    max-height: 180px;
+    border-radius: 10px;
+    margin-top: 10px;
+    object-fit: cover;
+}
+
+.dashboard-button.danger {
+    background: #dc2626;
+}

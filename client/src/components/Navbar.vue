@@ -83,6 +83,8 @@ const openExternal = (url) => {
 const navLinks = [
   {path: "/home", label: "", icon: "fas fa-home", tooltip: "homeTooltip"},
   {path: "/gallery", label: "", icon: "fas fa-images", tooltip: "galleryTooltip"},
+  {path: "/events", label: "", icon: "fas fa-calendar-days", tooltip: "eventsTooltip"},
+
   /*{path: "/tutorial", label: "", icon: "fas fa-book-open", tooltip: "tutorialTooltip"},*/
 /*
   {path: "/order", label: "", icon: "fas fa-shopping-cart", tooltip: "orderTooltip"},

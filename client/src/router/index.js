@@ -7,6 +7,7 @@ import NotFound from "../views/NotFound.vue";
 import AdminDashboard from "../views/AdminDashboard.vue";
 import AdminLogin from "../views/AdminLogin.vue";
 import {t} from "../locales";
+import Events from "../views/Events.vue";
 
 const getSavedLanguage = () =>
     localStorage.getItem("language") ||
@@ -40,6 +41,14 @@ const routes = [
         meta: {
             title: (lang) => t(lang, "galleryTitle"),
             description: (lang) => t(lang, "galleryDescription"),
+        },
+    },
+    {
+        path: "/:lang(hu|en)/events",
+        component: Events,
+        meta: {
+            title: () => "Események",
+            description: () => "Origami Alfredo események, workshopok és bemutatók.",
         },
     },
     {

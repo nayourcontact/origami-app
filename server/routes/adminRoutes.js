@@ -4,6 +4,7 @@ const router = express.Router();
 const adminController = require("../controllers/adminController");
 const auth = require("../utils/authMiddleware");
 const loginLimiter = require("../utils/loginLimiter");
+const eventRoutes = require("./eventRoutes");
 
 // Validációs hibaellenőrző middleware
 function handleValidationErrors(req, res, next) {
@@ -40,6 +41,7 @@ router.post(
 // 🟠 Auth alatti, védett végpontok
 
 router.use(auth);
+router.use("/events", eventRoutes);
 
 router.put(
     "/email",

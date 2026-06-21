@@ -19,7 +19,18 @@ export default {
             saveTokenMessage: '',
             tokenModalOpen: false,
             gdprTable: [],
-            orders: []
+            orders: [],
+
+            events: [],
+            eventForm: {
+                title: "",
+                location: "",
+                eventDate: "",
+                ticketPrice: "",
+                description: "",
+                coverImage: null,
+                gallery: [],
+            },
         };
     },
     computed: {
@@ -32,9 +43,144 @@ export default {
                     key.toLowerCase().includes(query) ||
                     String(value).toLowerCase().includes(query)
             )
-        }
+        },
+        sortedEvents() {
+            return [...this.events].sort(
+                (a, b) => new Date(a.eventDate) - new Date(b.eventDate)
+            );
+        },
     },
     methods: {
+        isUpcoming(date) {
+            return new Date(date) >= new Date();
+        },
+
+        onCoverImageChange(event) {
+            this.eventForm.coverImage = event.target.files?.[0] || null;
+        },
+
+        onGalleryChange(event) {
+            this.eventForm.gallery = Array.from(event.target.files || []);
+        },
+
+        resetEventForm() {
+            this.eventForm = {
+                title: "",
+                location: "",
+                eventDate: "",
+                ticketPrice: "",
+                description: "",
+                coverImage: null,
+                gallery: [],
+            };
+        },
+
+        getAdminHeaders() {
+            const token = localStorage.getItem("adminToken");
+
+            return {
+                Authorization: `Bearer ${token}`,
+            };
+        },
+
+        async fetchEvents() {
+            try {
+                const res = await api.get(`${API_BASE_URL}/api/admin/events`, {
+                    headers: this.getAdminHeaders(),
+                });
+
+                this.events = Array.isArray(res.data) ? res.data : [];
+            } catch (err) {
+                console.error("Események betöltése sikertelen:", err);
+                window.showToast?.("Nem sikerült betölteni az eseményeket.", "error");
+            }
+        },
+
+        async saveEvent() {
+            if (!this.eventForm.title || !this.eventForm.location || !this.eventForm.eventDate) {
+                window.showToast?.("Cím, helyszín és dátum megadása kötelező.", "error");
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+
+                formData.append("title", this.eventForm.title);
+                formData.append("location", this.eventForm.location);
+                formData.append("eventDate", this.eventForm.eventDate);
+                formData.append("ticketPrice", this.eventForm.ticketPrice || "");
+                formData.append("description", this.eventForm.description || "");
+
+                if (this.eventForm.coverImage) {
+                    formData.append("coverImage", this.eventForm.coverImage);
+                }
+
+                for (const file of this.eventForm.gallery) {
+                    formData.append("gallery", file);
+                }
+
+                await api.post(`${API_BASE_URL}/api/admin/events`, formData, {
+                    headers: {
+                        ...this.getAdminHeaders(),
+                        "Content-Type": "multipart/form-data",
+                    },
+                });
+
+                window.showToast?.("Esemény sikeresen mentve.", "info");
+
+                this.resetEventForm();
+                await this.fetchEvents();
+            } catch (err) {
+                console.error("Esemény mentése sikertelen:", err);
+                window.showToast?.("Nem sikerült elmenteni az eseményt.", "error");
+            }
+        },
+
+        async uploadEventGallery(eventId, inputEvent) {
+            const files = inputEvent.target.files;
+
+            if (!files || !files.length) return;
+
+            try {
+                const formData = new FormData();
+
+                for (const file of files) {
+                    formData.append("gallery", file);
+                }
+
+                await api.post(`${API_BASE_URL}/api/admin/events/${eventId}/gallery`, formData, {
+                    headers: {
+                        ...this.getAdminHeaders(),
+                        "Content-Type": "multipart/form-data",
+                    },
+                });
+
+                window.showToast?.("Galéria elemek sikeresen feltöltve.", "info");
+
+                await this.fetchEvents();
+            } catch (err) {
+                console.error("Galéria feltöltése sikertelen:", err);
+                window.showToast?.("Nem sikerült feltölteni a fotókat.", "error");
+            }
+        },
+
+        async deleteEvent(eventId) {
+            if (!confirm("Biztosan törlöd ezt az eseményt?")) return;
+
+            try {
+                await api.delete(`${API_BASE_URL}/api/admin/events/${eventId}`, {
+                    headers: this.getAdminHeaders(),
+                });
+
+                window.showToast?.("Esemény törölve.", "info");
+
+                await this.fetchEvents();
+            } catch (err) {
+                console.error("Esemény törlése sikertelen:", err);
+                window.showToast?.("Nem sikerült törölni az eseményt.", "error");
+            }
+        },
+
         preventLeave(e) {
             if (this.changed) {
                 e.preventDefault();
@@ -210,6 +356,7 @@ export default {
         window.addEventListener("beforeunload", this.preventLeave);
         this.fetchStatus();
         this.fetchLanguageFile();
+        this.fetchEvents();
     },
     beforeUnmount() {
         window.removeEventListener("beforeunload", this.preventLeave);
@@ -220,6 +367,8 @@ export default {
                 this.fetchGdprData();
             } else if (val === "orders") {
                 this.fetchOrders();
+            } else if (val === "events") {
+                this.fetchEvents();
             }
         }
     }

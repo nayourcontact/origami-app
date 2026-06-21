@@ -2,6 +2,7 @@
   <div class="admin-dashboard-wrapper">
     <aside class="sidebar">
       <button @click="activeTab = 'token'">🔐 Token kezelése</button>
+      <button @click="activeTab = 'events'">📅 Események</button>
       <button @click="activeTab = 'orders'">📦 Megrendelések</button>
       <button @click="activeTab = 'languageEditor'">🌐 Nyelvi fájlok</button>
       <button @click="activeTab = 'gdprExport'">🗃️ Adatkezelés (GDPR)</button>
@@ -167,6 +168,98 @@
             </tbody>
           </table>
 
+        </div>
+      </section>
+
+      <!-- ESEMÉNYEK -->
+      <section v-if="activeTab === 'events'">
+        <div class="dashboard-card">
+          <h2 class="dashboard-subtitle">📅 Új esemény rögzítése</h2>
+
+          <label class="dashboard-label">Esemény címe</label>
+          <input v-model="eventForm.title" class="dashboard-input" />
+
+          <label class="dashboard-label">Helyszín</label>
+          <input v-model="eventForm.location" class="dashboard-input" />
+
+          <label class="dashboard-label">Dátum</label>
+          <input v-model="eventForm.eventDate" type="datetime-local" class="dashboard-input" />
+
+          <label class="dashboard-label">Jegyár</label>
+          <input v-model="eventForm.ticketPrice" class="dashboard-input" placeholder="Pl. 4500 Ft vagy Ingyenes" />
+
+          <label class="dashboard-label">🖼️ Borítókép</label>
+          <input
+              type="file"
+              accept="image/*"
+              @change="onCoverImageChange"
+              class="dashboard-input"
+          />
+
+          <label class="dashboard-label">🖼️🎬 Galéria képek / videók</label>
+          <input
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              @change="onGalleryChange"
+              class="dashboard-input"
+          />
+
+          <label class="dashboard-label">Leírás</label>
+          <textarea v-model="eventForm.description" rows="5" class="dashboard-input"></textarea>
+
+          <button class="dashboard-button mt-4" @click="saveEvent">
+            💾 Esemény mentése
+          </button>
+        </div>
+
+        <div class="dashboard-card mt-6">
+          <h2 class="dashboard-subtitle">📋 Összes esemény</h2>
+
+          <div v-if="!sortedEvents.length">
+            Még nincs rögzített esemény.
+          </div>
+
+          <div v-for="event in sortedEvents" :key="event._id || event.id" class="event-admin-item">
+            <h3>{{ event.title }}</h3>
+
+            <p>
+              <strong>Státusz:</strong>
+              <span :class="isUpcoming(event.eventDate) ? 'text-green-600' : 'text-gray-500'">
+          {{ isUpcoming(event.eventDate) ? "Upcoming" : "Elmúlt" }}
+        </span>
+            </p>
+
+            <p><strong>Dátum:</strong> {{ formatDate(event.eventDate) }}</p>
+            <p><strong>Helyszín:</strong> {{ event.location }}</p>
+            <p><strong>Jegyár:</strong> {{ event.ticketPrice || "Nincs megadva" }}</p>
+            <p>{{ event.description }}</p>
+
+            <div v-if="event.coverImageUrl">
+              <img :src="event.coverImageUrl" class="event-preview" />
+            </div>
+
+            <div v-if="event.gallery?.length" class="event-gallery-preview">
+              <div v-for="item in event.gallery" :key="item.url">
+                <img
+                    v-if="item.type === 'image'"
+                    :src="item.url"
+                    class="event-preview"
+                />
+
+                <video
+                    v-else-if="item.type === 'video'"
+                    :src="item.url"
+                    controls
+                    class="event-preview"
+                ></video>
+              </div>
+            </div>
+
+            <button class="dashboard-button danger mt-3" @click="deleteEvent(event._id || event.id)">
+              🗑️ Törlés
+            </button>
+          </div>
         </div>
       </section>
 
