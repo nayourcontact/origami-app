@@ -6,7 +6,7 @@
       <BaseButton
           v-for="(link, index) in navLinks"
           :key="index"
-          variant="gradient"
+          variant="primary"
           size="sm"
           :icon="link.icon"
           :tooltip="t(language, link.tooltip)"
@@ -18,7 +18,7 @@
       </BaseButton>
 
       <BaseButton
-          variant="gradient"
+          variant="primary"
           size="sm"
           icon="fas fa-envelope"
           tooltip="alfred.takacs92@gmail.com"
@@ -26,7 +26,7 @@
       />
 
       <BaseButton
-          variant="gradient"
+          variant="primary"
           size="sm"
           icon="fab fa-instagram"
           tooltip="Instagram"
@@ -34,7 +34,7 @@
       />
 
       <BaseButton
-          variant="gradient"
+          variant="primary"
           size="sm"
           icon="fab fa-threads"
           tooltip="Threads"
@@ -42,7 +42,7 @@
       />
 
       <BaseButton
-          variant="gradient"
+          variant="primary"
           size="sm"
           icon="fab fa-facebook"
           tooltip="Facebook"

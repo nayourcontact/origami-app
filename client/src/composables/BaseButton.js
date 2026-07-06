@@ -1,21 +1,260 @@
-import {computed, ref} from "vue";
-import {t} from "../locales";
-import {useRoute} from "vue-router";
+import { computed, ref } from "vue";
+import { gsap } from "gsap";
+import { t } from "../locales";
+import { useRoute } from "vue-router";
 
 export function useBaseButton(props, emit) {
     const showTooltip = ref(false);
+    const buttonRef = ref(null);
+    let breatheTween = null;
+    let breatheDelay = null;
+    let isHovering = false;
+
     const route = useRoute();
     const currentLanguage = computed(() => route.params.lang || "hu");
 
-    const hasLabel = computed(() => !!props.tooltip || !!props.icon);
+    const stopBreathe = () => {
+        if (breatheDelay) {
+            breatheDelay.kill();
+            breatheDelay = null;
+        }
+
+        if (breatheTween) {
+            breatheTween.kill();
+            breatheTween = null;
+        }
+    };
+
+    const startBreathe = (button) => {
+        if (breatheTween) {
+            breatheTween.kill();
+            breatheTween = null;
+        }
+
+        breatheDelay = null;
+
+        if (!isHovering || buttonRef.value !== button) return;
+
+        breatheTween = gsap.to(button, {
+            scale: 1.035,
+            y: -4.8,
+            duration: 1.35,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            overwrite: false,
+        });
+    };
+
+    const getEls = () => {
+        const button = buttonRef.value;
+
+        return {
+            button,
+            icon: button?.querySelector(".button-icon"),
+            leftFold: button?.querySelector(".button-fold-left"),
+            rightFold: button?.querySelector(".button-fold-right"),
+        };
+    };
+
+    const resetFolds = (leftFold, rightFold) => {
+        gsap.set([leftFold, rightFold].filter(Boolean), {
+            x: 0,
+            y: "-50%",
+            scale: 0.2,
+            rotate: 0,
+            opacity: 0,
+        });
+    };
+
+    const animatePress = () => {
+        if (!buttonRef.value || props.disabled || props.loading) return;
+
+        stopBreathe();
+
+        const { button, icon } = getEls();
+
+        gsap.killTweensOf([button, icon].filter(Boolean));
+
+        const tl = gsap.timeline();
+
+        tl.to(button, {
+            scale: 0.975,
+            y: -1,
+            rotate: 0,
+            duration: 0.08,
+            ease: "power2.out",
+        });
+
+        if (icon) {
+            tl.to(icon, {
+                scale: 0.94,
+                rotate: -4,
+                duration: 0.08,
+                ease: "power2.out",
+            }, "<");
+        }
+
+        tl.to(button, {
+            scale: 1.01,
+            y: -3,
+            rotate: -0.25,
+            duration: 0.24,
+            ease: "power3.out",
+        });
+
+        if (icon) {
+            tl.to(icon, {
+                scale: 1.05,
+                rotate: -3,
+                duration: 0.24,
+                ease: "power3.out",
+            }, "<");
+        }
+    };
+
+    const handleMouseEnter = () => {
+        if (!buttonRef.value || props.disabled || props.loading) return;
+
+        isHovering = true;
+
+        if (breatheDelay) {
+            breatheDelay.kill();
+            breatheDelay = null;
+        }
+
+        const { button, icon, leftFold, rightFold } = getEls();
+
+        gsap.killTweensOf([button, icon, leftFold, rightFold].filter(Boolean));
+        resetFolds(leftFold, rightFold);
+
+        gsap.to(button, {
+            y: -3,
+            rotate: -0.25,
+            scale: 1.01,
+            duration: 0.38,
+            ease: "power3.out",
+            overwrite: "auto",
+        });
+
+        if (icon) {
+            gsap.to(icon, {
+                y: -1,
+                rotate: -4,
+                scale: 1.05,
+                duration: 0.42,
+                ease: "power3.out",
+                overwrite: "auto",
+            });
+        }
+
+        const foldTl = gsap.timeline({ defaults: { overwrite: "auto" } });
+
+        if (leftFold) {
+            foldTl.fromTo(leftFold,
+                {
+                    x: 0,
+                    y: "-50%",
+                    scale: 0.2,
+                    rotate: -28,
+                    opacity: 0,
+                },
+                {
+                    x: -20,
+                    y: "-50%",
+                    scale: 1,
+                    rotate: -90,
+                    opacity: 1,
+                    duration: 0.32,
+                    ease: "power3.out",
+                },
+                0
+            );
+        }
+
+        if (rightFold) {
+            foldTl.fromTo(rightFold,
+                {
+                    x: 0,
+                    y: "-50%",
+                    scale: 0.2,
+                    rotate: 28,
+                    opacity: 0,
+                },
+                {
+                    x: 20,
+                    y: "-50%",
+                    scale: 1,
+                    rotate: 90,
+                    opacity: 1,
+                    duration: 0.32,
+                    ease: "power3.out",
+                },
+                0.14
+            );
+        }
+
+        breatheDelay = gsap.delayedCall(0.36, () => {
+            startBreathe(button);
+        });
+    };
+
+    const handleMouseLeave = () => {
+        if (!buttonRef.value) return;
+
+        isHovering = false;
+        stopBreathe();
+
+        const { button, icon, leftFold, rightFold } = getEls();
+
+        gsap.killTweensOf([button, icon, leftFold, rightFold].filter(Boolean));
+
+        gsap.to(button, {
+            y: 0,
+            rotate: 0,
+            scale: 1,
+            duration: 0.34,
+            ease: "power2.out",
+            overwrite: "auto",
+            clearProps: "transform",
+        });
+
+        if (icon) {
+            gsap.to(icon, {
+                y: 0,
+                rotate: 0,
+                scale: 1,
+                duration: 0.34,
+                ease: "power2.out",
+                overwrite: "auto",
+                clearProps: "transform",
+            });
+        }
+
+        gsap.to([leftFold, rightFold].filter(Boolean), {
+            x: 0,
+            y: "-50%",
+            scale: 0.2,
+            rotate: 0,
+            opacity: 0,
+            duration: 0.24,
+            ease: "power2.inOut",
+            overwrite: "auto",
+        });
+    };
 
     const handleClick = () => {
-        if (!props.disabled && !props.loading) emit("click");
+        if (props.disabled || props.loading) return;
+
+        animatePress();
+        emit("click");
     };
 
     const translatedTooltip = computed(() =>
         props.tooltip ? t(currentLanguage.value, props.tooltip) : ""
     );
+
+    const hasLabel = computed(() => !!props.tooltip || !!props.icon);
 
     const variantClass = computed(() =>
         ({
@@ -41,6 +280,7 @@ export function useBaseButton(props, emit) {
     });
 
     return {
+        buttonRef,
         icon: props.icon,
         fullWidth: props.fullWidth,
         disabled: props.disabled,
@@ -52,5 +292,7 @@ export function useBaseButton(props, emit) {
         variantClass,
         sizeClass,
         handleClick,
+        handleMouseEnter,
+        handleMouseLeave,
     };
 }

@@ -1,31 +1,49 @@
 .not-found {
+    min-height: 80vh;
+    display: grid;
+    place-items: center;
     text-align: center;
-    padding: 50px;
+    padding: clamp(5rem, 10vw, 9rem) 1.25rem;
+    color: #231a14;
 }
 
+.not-found h1,
 h1 {
-    font-size: 80px;
-    color: #00ceff;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(5rem, 16vw, 12rem);
+    line-height: 0.85;
+    letter-spacing: -0.08em;
+    font-weight: 400;
+    color: #231a14;
+    margin: 0 0 1rem;
 }
 
+.not-found p,
 p {
     font-size: 1rem;
-    color: #666;
+    line-height: 1.75;
+    color: #5d4a3b;
 }
 
 .home-btn {
     display: inline-block;
     margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 18px;
+    padding: 0.9rem 1.35rem;
+    font-size: 1rem;
+    font-weight: 900;
     text-decoration: none;
-    color: white;
-    background: linear-gradient(135deg, #00ceff, #0051cb);
-    border-radius: 8px;
-    transition: 0.3s;
+    color: #fffaf2;
+    background: #231a14;
+    border: 1px solid rgba(35, 26, 20, 0.12);
+    border-radius: 999px;
+    box-shadow: 0 14px 30px rgba(35, 26, 20, 0.16);
+    transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
 }
 
-.home-btn:hover {
-    background: linear-gradient(135deg, #0084a5, #003b99);
+.home-btn:hover,
+.home-btn:focus-visible {
+    background: #3a2a20;
     transform: translateY(-2px);
+    box-shadow: 0 20px 44px rgba(35, 26, 20, 0.20);
+    outline: none;
 }

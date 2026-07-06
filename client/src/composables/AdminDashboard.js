@@ -77,7 +77,6 @@ export default {
 
         getAdminHeaders() {
             const token = localStorage.getItem("adminToken");
-
             return {
                 Authorization: `Bearer ${token}`,
             };

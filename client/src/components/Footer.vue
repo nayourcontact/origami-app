@@ -62,47 +62,9 @@
 
   <footer class="footer">
     <div class="footer-content">
-<!--      <div class="newsletter flex flex-col items-start gap-2">
-        <input
-            type="email"
-            v-model.trim="email"
-            :placeholder="t(currentLanguage, 'newsletterPlaceholder')"
-            class="email-input"
-            :aria-label="t(currentLanguage, 'emailLabel')"
-            autocomplete="email"
-            @keyup.enter="handleSubscribe"
-        />
-        <label class="flex items-start gap-3 text-sm w-full max-w-xs">
-          <input
-              type="checkbox"
-              v-model="consentGiven"
-              class="mt-[3px]"
-              required
-          />
-          <span class="leading-snug">
-            {{ t(currentLanguage, 'consentText') }}
-            <a
-                href="#"
-                @click.prevent="openPrivacyModal"
-                class="underline text-blue-600 inline"
-            >
-              {{ t(currentLanguage, 'privacy') }}
-            </a>
-          </span>
-        </label>
-        <BaseButton
-            :disabled="loading"
-            variant="footer-pill"
-            size="sm"
-            icon="fas fa-paper-plane"
-            tooltip="subscribeTooltip"
-            @click="handleSubscribe"
-        >
-          {{ loading ? t(currentLanguage, 'subscribing') : t(currentLanguage, 'subscribe') }}
-        </BaseButton>
-      </div>-->
-      <div class="social-links">
-
+      <div class="footer-brand">
+        <span>Origami Alfredo</span>
+        <strong>{{ currentLanguage === 'en' ? 'Folded stories in paper' : 'Papírba hajtott történetek' }}</strong>
       </div>
 
       <BaseButton
@@ -114,7 +76,9 @@
         {{ t(currentLanguage, 'cookieSettingsLink') }}
       </BaseButton>
 
-      <p class="copyright">© 2026 origamialfredo | {{ t(currentLanguage, 'footerText') }}</p>
+      <p class="copyright">
+        © 2026 origamialfredo · {{ t(currentLanguage, 'footerText') }}
+      </p>
     </div>
   </footer>
   <PrivacyModal v-model:show="showPrivacy"/>

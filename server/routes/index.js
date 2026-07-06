@@ -8,6 +8,7 @@ const subscriberRoutes = require("./subscriberRoutes");
 const orderRoutes = require("./orderRoutes");
 const rateLimit = require("express-rate-limit");
 const adminRoutes = require("./adminRoutes");
+const eventRoutes = require("./eventRoutes");
 
 // Newsletter-specific rate limiter
 const newsletterLimiter = rateLimit({
@@ -22,5 +23,6 @@ router.use("/order", orderRoutes);
 router.use("/newsletter", newsletterLimiter, subscriberRoutes);
 router.use("/", instagramRoutes);
 router.use("/admin", adminRoutes);
+router.use("/events", eventRoutes);
 
 module.exports = router;

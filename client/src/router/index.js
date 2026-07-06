@@ -8,6 +8,8 @@ import AdminDashboard from "../views/AdminDashboard.vue";
 import AdminLogin from "../views/AdminLogin.vue";
 import {t} from "../locales";
 import Events from "../views/Events.vue";
+import api from "../axios.js";
+import { API_BASE_URL, INSTAGRAM_USER_ID } from "../config.js";
 
 const getSavedLanguage = () =>
     localStorage.getItem("language") ||
@@ -91,25 +93,37 @@ const router = createRouter({
     routes,
 });
 
-router.beforeEach((to, from, next) => {
-    const token = localStorage.getItem('adminToken');
-    const isAdminRoute = to.path.startsWith('/admin');
+router.beforeEach(async (to, from, next) => {
+    const isAdminRoute = to.path.startsWith("/admin");
+    const token = localStorage.getItem("adminToken");
 
-    // Admin védelem
-    if (isAdminRoute && to.path !== '/admin/login') {
+    if (isAdminRoute && to.path !== "/admin/login") {
         if (!token) {
-            return next('/admin/login');
+            return next("/admin/login");
+        }
+
+        try {
+            await api.get(`${API_BASE_URL}/api/admin/status`, {
+                params: {
+                    userId: INSTAGRAM_USER_ID
+                },
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+        } catch (err) {
+            localStorage.removeItem("adminToken");
+            return next("/admin/login");
         }
     }
 
-    // Nyelvi validáció csak nem-admin oldalakon
     if (!isAdminRoute) {
         const lang = to.params.lang;
-        if (!lang || !['hu', 'en'].includes(lang)) {
-            return next({ path: '/hu/home' });
+
+        if (!lang || !["hu", "en"].includes(lang)) {
+            return next({ path: "/hu/home" });
         }
 
-        // Meta címek és leírás frissítése
         document.title =
             typeof to.meta.title === "function" ? to.meta.title(lang) : "Origami Alfredo";
 
