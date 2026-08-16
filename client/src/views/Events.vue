@@ -154,9 +154,78 @@
               </p>
             </div>
 
-            <p class="event-description">
-              {{ selectedEvent.description }}
-            </p>
+            <div class="event-description">
+              <template
+                  v-for="(block, index) in parsedDescription"
+                  :key="index"
+              >
+                <!-- Sima szöveg -->
+                <p
+                    v-if="block.type === 'text'"
+                    class="event-description-text"
+                >
+                  {{ block.content }}
+                </p>
+
+                <!-- Embedelt HTML, pl. YouTube iframe -->
+                <div
+                    v-else-if="block.type === 'html'"
+                    class="event-description-embed"
+                    v-html="block.content"
+                ></div>
+
+                <!-- Link -->
+                <div
+                    v-else-if="block.type === 'link'"
+                    class="event-description-link-wrapper"
+                >
+                  <!-- OG preview, ha van -->
+                  <a
+                      v-if="linkPreviews[block.url]"
+                      :href="block.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="link-preview-card"
+                  >
+                    <img
+                        v-if="linkPreviews[block.url].image"
+                        :src="linkPreviews[block.url].image"
+                        :alt="linkPreviews[block.url].title || ''"
+                        class="link-preview-image"
+                    />
+
+                    <div class="link-preview-content">
+          <span class="link-preview-domain">
+            {{ linkPreviews[block.url].siteName || getDomain(block.url) }}
+          </span>
+
+                      <strong v-if="linkPreviews[block.url].title">
+                        {{ linkPreviews[block.url].title }}
+                      </strong>
+
+                      <p v-if="linkPreviews[block.url].description">
+                        {{ linkPreviews[block.url].description }}
+                      </p>
+
+                      <span class="link-preview-url">
+            {{ block.url }}
+          </span>
+                    </div>
+                  </a>
+
+                  <!-- Ha nincs OG adat -->
+                  <a
+                      v-else
+                      :href="block.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="event-plain-link"
+                  >
+                    {{ block.url }}
+                  </a>
+                </div>
+              </template>
+            </div>
 
             <div v-if="selectedEvent.gallery?.length" class="event-gallery">
               <h3>{{ currentLanguage === "en" ? "Gallery" : "Galéria" }}</h3>
@@ -215,18 +284,36 @@ export default {
       filter: "all",
       selectedEvent: null,
       currentLanguage: this.$route?.params?.lang || "hu",
-      selectedGalleryItem: null
+      selectedGalleryItem: null,
+
+      linkPreviews: {}
     };
   },
 
   computed: {
     filteredEvents() {
       return this.events.filter((event) => {
-        if (this.filter === "upcoming") return this.isUpcoming(event.eventDate);
-        if (this.filter === "past") return !this.isUpcoming(event.eventDate);
+        if (this.filter === "upcoming") {
+          return this.isUpcoming(event.eventDate);
+        }
+
+        if (this.filter === "past") {
+          return !this.isUpcoming(event.eventDate);
+        }
+
         return true;
       });
     },
+
+    parsedDescription() {
+      if (!this.selectedEvent?.description) {
+        return [];
+      }
+
+      return this.parseDescription(
+          this.selectedEvent.description
+      );
+    }
   },
 
   async mounted() {
@@ -242,6 +329,157 @@ export default {
 
   methods: {
     t,
+
+    loadDescriptionPreviews(description) {
+      const blocks = this.parseDescription(description);
+
+      blocks
+          .filter(block => block.type === "link")
+          .forEach(block => {
+            this.loadLinkPreview(block.url);
+          });
+    },
+
+    async loadLinkPreview(url) {
+      if (!url) return;
+
+      if (
+          Object.prototype.hasOwnProperty.call(
+              this.linkPreviews,
+              url
+          )
+      ) {
+        return;
+      }
+
+      this.linkPreviews[url] = undefined;
+
+      try {
+        const res = await api.get(
+            `${API_BASE_URL}/api/link-preview`,
+            {
+              params: {
+                url
+              }
+            }
+        );
+
+        if (res.status === 204) {
+          this.linkPreviews[url] = null;
+          return;
+        }
+
+        if (!res.data) {
+          this.linkPreviews[url] = null;
+          return;
+        }
+
+        if (
+            !res.data.title &&
+            !res.data.description &&
+            !res.data.image
+        ) {
+          this.linkPreviews[url] = null;
+          return;
+        }
+        this.linkPreviews[url] = res.data;
+      } catch (error) {
+        console.error(
+            "[LinkPreview] request hiba:",
+            url,
+            error.response?.status,
+            error.response?.data,
+            error
+        );
+
+        this.linkPreviews[url] = null;
+      }
+    },
+
+    decodeHtml(html) {
+      if (!html) return "";
+
+      const textarea = document.createElement("textarea");
+      textarea.innerHTML = html;
+
+      return textarea.value;
+    },
+
+    parseDescription(description) {
+      if (!description) return [];
+
+      const decoded = this.decodeHtml(description);
+
+      const blocks = [];
+
+      // iframe-ek és URL-ek felismerése
+      const tokenRegex =
+          /(<iframe[\s\S]*?<\/iframe>)|(https?:\/\/[^\s<]+)/gi;
+
+      let lastIndex = 0;
+      let match;
+
+      while ((match = tokenRegex.exec(decoded)) !== null) {
+
+        // Token előtti sima szöveg
+        if (match.index > lastIndex) {
+          const text = decoded
+              .slice(lastIndex, match.index)
+              .trim();
+
+          if (text) {
+            blocks.push({
+              type: "text",
+              content: text
+            });
+          }
+        }
+
+        const value = match[0];
+
+        if (value.toLowerCase().startsWith("<iframe")) {
+          blocks.push({
+            type: "html",
+            content: value
+          });
+        } else {
+          // Mondatvégi írásjelek levágása az URL-ről
+          const url = value.replace(/[.,;!?]+$/, "");
+
+          blocks.push({
+            type: "link",
+            url
+          });
+
+        }
+
+        lastIndex = tokenRegex.lastIndex;
+      }
+
+      // Utolsó token utáni szöveg
+      if (lastIndex < decoded.length) {
+        const text = decoded
+            .slice(lastIndex)
+            .trim();
+
+        if (text) {
+          blocks.push({
+            type: "text",
+            content: text
+          });
+        }
+      }
+
+      return blocks;
+    },
+
+    getDomain(url) {
+      try {
+        return new URL(url).hostname.replace(/^www\./, "");
+      } catch {
+        return url;
+      }
+    },
 
     openGalleryItem(item) {
       this.selectedGalleryItem = item;
@@ -578,9 +816,6 @@ export default {
     },
 
     animateModalIn() {
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      //if (reducedMotion) return;
-
       gsap.fromTo(this.$refs.modalOverlay,
           {autoAlpha: 0},
           {autoAlpha: 1, duration: 0.28, ease: "power2.out"}
@@ -635,8 +870,10 @@ export default {
 
     openModal(event) {
       this.selectedEvent = event;
-      document.body.style.overflow = "hidden";
-      this.$nextTick(() => this.animateModalIn());
+
+      this.$nextTick(() => {
+        this.loadDescriptionPreviews(event.description);
+      });
     },
 
     closeModal() {

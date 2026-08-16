@@ -121,8 +121,6 @@ const galleryReady = ref(false);
 gsap.registerPlugin(ScrollTrigger);
 
 onMounted(async () => {
-  console.log("HOME MOUNTED");
-
   await initBio(currentLanguage);
   await initNewSixPosts(currentLanguage);
 
@@ -134,7 +132,7 @@ onMounted(async () => {
 
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (prefersReducedMotion) {
-    console.warn("Reduced motion be van kapcsolva, GSAP animációk kikapcsolva.");
+    //console.warn("Reduced motion be van kapcsolva, GSAP animációk kikapcsolva.");
   }
 
   gsap.set(".bio-origami-shape", {
