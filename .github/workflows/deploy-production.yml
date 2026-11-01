@@ -38,6 +38,68 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - name: Deploy over OpenSSH
+        shell: bash
+        env:
+          DO_HOST: ${{ secrets.DO_HOST }}
+          DO_USER: ${{ secrets.DO_USER }}
+          DO_SSH_KEY: ${{ secrets.DO_SSH_KEY }}
+          DO_HOST_FINGERPRINT: ${{ secrets.DO_HOST_FINGERPRINT }}
+        run: |
+          set -euo pipefail
+
+          umask 077
+          mkdir -p "$HOME/.ssh"
+
+          printf '%s\n' "$DO_SSH_KEY" > "$HOME/.ssh/origami_deploy"
+          chmod 600 "$HOME/.ssh/origami_deploy"
+
+          trap 'rm -f "$HOME/.ssh/origami_deploy"' EXIT
+
+          ssh-keyscan -T 15 -t ed25519 "$DO_HOST" \
+            2>/dev/null > "$HOME/.ssh/known_hosts"
+
+          test -s "$HOME/.ssh/known_hosts"
+
+          ACTUAL_FINGERPRINT=$(
+            ssh-keygen -lf "$HOME/.ssh/known_hosts" -E sha256 |
+            awk '$NF == "(ED25519)" { print $2; exit }'
+          )
+
+          if [[ "$ACTUAL_FINGERPRINT" != "$DO_HOST_FINGERPRINT" ]]; then
+            echo "::error::SSH host fingerprint mismatch"
+            exit 1
+          fi
+
+          echo "SSH host identity verified"
+
+          ssh -T \
+            -i "$HOME/.ssh/origami_deploy" \
+            -o IdentitiesOnly=yes \
+            -o HostKeyAlgorithms=ssh-ed25519 \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -o ConnectTimeout=15 \
+            "$DO_USER@$DO_HOST" 'bash -se' <<'REMOTE'
+              set -euo pipefail
+
+              cd /home/app/app
+              git fetch origin main
+              git checkout main
+              git pull --ff-only origin main
+
+              cd /home/app/app/server
+              npm ci
+
+              cd /home/app/app/client
+              npm ci
+              npm run build
+
+              cd /home/app/app/server
+              pm2 restart origami-app --update-env
+              pm2 status origami-app
+              pm2 logs origami-app --lines 30 --nostream
+          REMOTE
       - name: Verify server host key
         shell: bash
         env:
