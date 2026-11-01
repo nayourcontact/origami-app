@@ -15,7 +15,6 @@ export default {
             saving: false,
             activeTab: 'token',
             newToken: '',
-            newClientSecret: '',
             saveTokenMessage: '',
             tokenModalOpen: false,
             gdprTable: [],
@@ -262,14 +261,6 @@ export default {
                 this.saving = false;
             }
         },
-        formatToken(token) {
-            if (!token || token.length < 10) return '[Érvénytelen token]';
-            return `${token.slice(0, 5)}...${token.slice(-5)}`;
-        },
-        maskSecret(secret) {
-            if (!secret) return '[Nincs megadva]';
-            return '•'.repeat(12); // vagy fix 12 db • karakter
-        },
         formatDate(dateStr) {
             const date = new Date(dateStr);
             if (isNaN(date)) return '[Érvénytelen dátum]';
@@ -293,7 +284,6 @@ export default {
 
                 await api.post(`${API_BASE_URL}/api/token`, {
                     token: this.newToken,
-                    clientSecret: "bff9573424b52cb5388c56a772d67103", // fixen backend számára
                     userId: INSTAGRAM_USER_ID,
                     expiresAt
                 });

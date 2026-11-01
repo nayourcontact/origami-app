@@ -1,6 +1,8 @@
 const express = require('express');
 const { body, param, validationResult } = require('express-validator');
 const controller = require('../controllers/instagramTokenController');
+const auth = require('../utils/authMiddleware');
+const requireAdmin = require('../utils/requireAdmin');
 
 const router = express.Router();
 
@@ -13,6 +15,9 @@ function handleValidationErrors(req, res, next) {
     next();
 }
 
+// Minden tokenkezelő végpont admin jogosultsághoz kötött.
+router.use(auth, requireAdmin);
+
 // POST /token – Token mentése
 router.post(
     '/token',
@@ -20,7 +25,7 @@ router.post(
         body("token").isString().notEmpty().withMessage("Token is required."),
         body("expiresAt").isISO8601().withMessage("expiresAt must be a valid ISO date."),
         body("userId").isString().notEmpty().withMessage("userId is required."),
-        body("clientSecret").isString().notEmpty().withMessage("clientSecret is required.")
+        body("clientSecret").not().exists().withMessage("clientSecret nem küldhető a kliensről.")
     ],
     handleValidationErrors,
     controller.saveToken

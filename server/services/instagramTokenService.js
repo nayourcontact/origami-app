@@ -2,15 +2,20 @@ const InstagramToken = require('../models/InstagramToken');
 const {encrypt, decrypt} = require('../utils/encryption');
 const axios = require('axios');
 
-const saveToken = async ({token, expiresAt, userId, clientSecret}) => {
+const saveToken = async ({token, expiresAt, userId}) => {
     try {
         const encryptedToken = encrypt(token);
-        const encryptedSecret = encrypt(clientSecret);
-
         const existing = await InstagramToken.findOne({userId});
+        // Frissítéskor megtartjuk a DB-ben titkosított secretet; új rekordnál szerveroldali konfigurációból jön.
+        const secret = existing ? null : process.env.INSTAGRAM_CLIENT_SECRET;
+        if (!existing && !secret) {
+            const err = new Error('INSTAGRAM_CLIENT_SECRET nincs konfigurálva');
+            err.statusCode = 503;
+            throw err;
+        }
+        const encryptedSecret = existing ? null : encrypt(secret);
         if (existing) {
             existing.token = encryptedToken;
-            existing.clientSecret = encryptedSecret;
             existing.expiresAt = expiresAt;
             existing.updatedAt = new Date();
             await existing.save();
@@ -61,7 +66,6 @@ const refreshInstagramToken = async (userId) => {
     }
 
     try {
-        console.log('Sending refresh request for token:', record.token);
         const response = await axios.get('https://graph.instagram.com/refresh_access_token', {
             params: {
                 grant_type: 'ig_refresh_token',
@@ -81,7 +85,6 @@ const refreshInstagramToken = async (userId) => {
             token: access_token,
             expiresAt,
             userId,
-            clientSecret: record.clientSecret, // optional reuse
         });
 
         return {

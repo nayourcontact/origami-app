@@ -30,9 +30,9 @@ router.use("/biography", biographyRoutes);
 router.use("/posts", postsRoutes);
 router.use("/order", orderRoutes);
 router.use("/newsletter", newsletterLimiter, subscriberRoutes);
-router.use("/", instagramRoutes);
 router.use("/admin", adminRoutes);
 router.use("/events", eventRoutes);
+router.use("/", instagramRoutes);
 router.use(
     "/link-preview",
     linkPreviewLimiter,
