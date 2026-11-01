@@ -8,7 +8,7 @@ import AdminDashboard from "../views/AdminDashboard.vue";
 import AdminLogin from "../views/AdminLogin.vue";
 import {t} from "../locales";
 import Events from "../views/Events.vue";
-import { getAdminSession } from "../axios.js";
+import api from "../axios.js";
 
 
 const getSavedLanguage = () =>
@@ -97,7 +97,7 @@ router.beforeEach(async (to, from, next) => {
     const isAdminRoute = to.path.startsWith("/admin");
     if (isAdminRoute && to.path !== "/admin/login") {
         try {
-            await getAdminSession();
+            await api.get('/api/admin/me', { skipCsrf: true });
         } catch (err) {
             return next("/admin/login");
         }

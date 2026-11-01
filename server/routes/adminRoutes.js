@@ -45,6 +45,7 @@ router.post(
 // 🟠 Auth alatti, védett végpontok
 
 router.use(auth, requireAdmin);
+router.get('/me', adminController.me);
 router.get('/session', requireAdmin, adminController.session);
 router.post('/logout', requireAdmin, adminController.logout);
 router.use("/events", requireAdmin, eventRoutes);

@@ -28,6 +28,11 @@ const login = async (req, res) => {
     res.json({role: admin.role, csrfToken: csrfForToken(token)});
 };
 
+const me = (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.json({ authenticated: true, role: req.user.role });
+};
+
 const session = (req, res) => {
     res.set('Cache-Control', 'no-store');
     res.json({authenticated: true, role: req.user.role, csrfToken: csrfForToken(getSessionToken(req))});
@@ -209,6 +214,7 @@ const listOrders = async (req, res) => {
 
 module.exports = {
     login,
+    me,
     session,
     logout,
     register,
