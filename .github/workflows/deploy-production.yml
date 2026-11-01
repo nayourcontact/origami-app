@@ -32,6 +32,13 @@ jobs:
         working-directory: client
         run: npm run build
 
+  deploy:
+    name: Deploy to droplet
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
       - name: Validate SSH fingerprint configuration
         env:
           HOST_FINGERPRINT: ${{ secrets.DO_HOST_FINGERPRINT }}
@@ -47,16 +54,8 @@ jobs:
           fi
           echo "Fingerprint secret is present and correctly formatted"
 
-  deploy:
-    name: Deploy to droplet
-    needs: build
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
       - name: Deploy over SSH
-        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
-        env:
-          DEPLOY_SHA: ${{ github.sha }}
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USER }}
