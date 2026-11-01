@@ -32,6 +32,21 @@ jobs:
         working-directory: client
         run: npm run build
 
+      - name: Validate SSH fingerprint configuration
+        env:
+          HOST_FINGERPRINT: ${{ secrets.DO_HOST_FINGERPRINT }}
+        shell: bash
+        run: |
+          if [[ -z "$HOST_FINGERPRINT" ]]; then
+            echo "::error::DO_HOST_FINGERPRINT is missing"
+            exit 1
+          fi
+          if [[ ! "$HOST_FINGERPRINT" =~ ^SHA256:[A-Za-z0-9+/]{43}$ ]]; then
+            echo "::error::Invalid fingerprint format"
+            exit 1
+          fi
+          echo "Fingerprint secret is present and correctly formatted"
+
   deploy:
     name: Deploy to droplet
     needs: build
