@@ -6,9 +6,21 @@ const path = require("path");
 const routes = require("./routes");
 const errorHandler = require("./utils/errorHandler");
 
-require('./utils/tokenReminderJob');
+
 
 const app = express();
+const { liveness, readiness } = require('./utils/health');
+const logger = require('./utils/logger');
+app.get('/health/live', liveness);
+app.get('/health/ready', readiness);
+app.use((req, res, next) => {
+    const start = process.hrtime.bigint();
+    res.on('finish', () => logger.info('http_request', {
+        method:req.method, route:req.route?.path || req.path.split('?')[0],
+        status:res.statusCode, durationMs: Number(process.hrtime.bigint()-start)/1e6
+    }));
+    next();
+});
 
 const { BASE_UPLOAD_ROOT } = require('./utils/uploadPaths');
 
