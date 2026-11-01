@@ -31,3 +31,11 @@ client/src/config.js
 .env.*
 !.env.example
 *.env.bak
+
+# Generated reports, locally uploaded media, and accidental backup files
+coverage/
+client/coverage/
+server/uploads/
+*.bak
+*.archive.gz
+*.archive.gz.sha256
