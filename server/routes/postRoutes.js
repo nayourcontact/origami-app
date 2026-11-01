@@ -9,6 +9,8 @@ const {
 } = require('../controllers/instagramPostController');
 
 const router = express.Router();
+const auth = require('../utils/authMiddleware');
+const requireAdmin = require('../utils/requireAdmin');
 
 // Hibaellenőrző middleware
 function handleValidationErrors(req, res, next) {
@@ -61,6 +63,6 @@ router.get(
 );
 
 // DELETE /all — csak akkor ajánlott, ha védelem alatt van!
-router.delete('/all', deleteAllPosts);
+router.delete('/all', auth, requireAdmin, deleteAllPosts);
 
 module.exports = router;

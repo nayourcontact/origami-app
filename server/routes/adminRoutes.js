@@ -33,7 +33,7 @@ router.post(
 
 router.post(
     "/register",
-    (req, res, next) => trustedOrigin(req) ? next() : res.status(403).json({message: "Origin tiltva."}),
+    auth, requireAdmin,
     [
         body("email").isEmail().withMessage("Érvényes email szükséges.").normalizeEmail(),
         body("password").isLength({ min: 6 }).withMessage("A jelszónak legalább 6 karakter hosszúnak kell lennie.")

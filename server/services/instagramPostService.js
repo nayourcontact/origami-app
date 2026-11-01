@@ -1,5 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
+const { downloadInstagramMedia } = require('./instagramMediaDownload');
 const path = require('path');
 const InstagramPost = require('../models/Post');
 const { getTokenByUserId } = require('./instagramTokenService');
@@ -10,59 +11,11 @@ const { BASE_UPLOAD_ROOT } = require('../utils/uploadPaths');
 
 const STORAGE_ROOT = path.join(BASE_UPLOAD_ROOT, 'instagram');
 
-const ensureDir = async (dirPath) => {
-    await fs.promises.mkdir(dirPath, { recursive: true });
-};
-
-const sanitizeFileName = (value) => {
-    return String(value).replace(/[^a-zA-Z0-9._-]/g, '_');
-};
-
-const fileExists = async (filePath) => {
+const sanitizeFileName = value => String(value).replace(/[^a-zA-Z0-9._-]/g, '_');
+const fileExists = async filePath => {
     if (!filePath) return false;
-    try {
-        await fs.promises.access(filePath, fs.constants.F_OK);
-        return true;
-    } catch {
-        return false;
-    }
-};
-
-const getExtensionFromUrlOrType = (url, contentType) => {
-    const cleanUrl = url.split('?')[0];
-    const extFromUrl = path.extname(cleanUrl);
-    if (extFromUrl) return extFromUrl;
-
-    if (contentType?.includes('jpeg')) return '.jpg';
-    if (contentType?.includes('jpg')) return '.jpg';
-    if (contentType?.includes('png')) return '.png';
-    if (contentType?.includes('mp4')) return '.mp4';
-    if (contentType?.includes('quicktime')) return '.mov';
-
-    return '';
-};
-
-const downloadFile = async ({ fileUrl, destDir, baseName }) => {
-    await ensureDir(destDir);
-
-    const response = await axios.get(fileUrl, {
-        responseType: 'stream',
-        timeout: 15000
-    });
-
-    const contentType = response.headers['content-type'];
-    const ext = getExtensionFromUrlOrType(fileUrl, contentType);
-    const fileName = `${sanitizeFileName(baseName)}${ext}`;
-    const fullPath = path.join(destDir, fileName);
-
-    await new Promise((resolve, reject) => {
-        const writer = fs.createWriteStream(fullPath);
-        response.data.pipe(writer);
-        writer.on('finish', resolve);
-        writer.on('error', reject);
-    });
-
-    return fullPath;
+    try { await fs.promises.access(filePath, fs.constants.F_OK); return true; }
+    catch { return false; }
 };
 
 const toPublicMediaUrl = (absolutePath) => {
@@ -127,7 +80,7 @@ const fetchInstagramPosts = async (userId) => {
                 let localThumbnailPath = null;
 
                 if (post.media_url) {
-                    localMediaPath = await downloadFile({
+                    localMediaPath = await downloadInstagramMedia({
                         fileUrl: post.media_url,
                         destDir: userStorageDir,
                         baseName: `${post.id}_media`
@@ -135,7 +88,7 @@ const fetchInstagramPosts = async (userId) => {
                 }
 
                 if (post.thumbnail_url) {
-                    localThumbnailPath = await downloadFile({
+                    localThumbnailPath = await downloadInstagramMedia({
                         fileUrl: post.thumbnail_url,
                         destDir: userStorageDir,
                         baseName: `${post.id}_thumb`

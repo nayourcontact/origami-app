@@ -22,7 +22,11 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
-app.use('/uploads', express.static(BASE_UPLOAD_ROOT));
+// Only explicitly public media directories are served. Other uploads remain private.
+const publicMediaOptions = { dotfiles: 'deny', index: false, fallthrough: false,
+    setHeaders: res => { res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox"); } };
+app.use('/uploads/events', express.static(path.join(BASE_UPLOAD_ROOT, 'events'), publicMediaOptions));
+app.use('/uploads/instagram', express.static(path.join(BASE_UPLOAD_ROOT, 'instagram'), publicMediaOptions));
 app.set('trust proxy', 1);
 
 // Rate limiter (global)

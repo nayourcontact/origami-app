@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const upload = require("../utils/upload");
+const { upload, validateAndPublish } = require("../utils/upload");
 const auth = require("../utils/authMiddleware");
 const requireAdmin = require("../utils/requireAdmin");
 const eventController = require("../controllers/eventController");
@@ -16,6 +16,7 @@ router.post(
         {name: "coverImage", maxCount: 1},
         {name: "gallery", maxCount: 30},
     ]),
+    validateAndPublish,
     eventController.createEvent
 );
 
@@ -24,6 +25,7 @@ router.post(
     auth,
     requireAdmin,
     upload.array("gallery", 30),
+    validateAndPublish,
     eventController.uploadGallery
 );
 
