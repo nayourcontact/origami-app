@@ -94,10 +94,17 @@ const gallerySection = ref(null);
 let observer = null;
 let galleryIntro = null;
 let modalTween = null;
+let galleryContext = null;
+let unmounted = false;
+// GSAP objects created in asynchronous callbacks must be added to this view's context.
+function scopedTween(create) {
+  if (unmounted || !galleryContext) return null;
+  return galleryContext.add(create);
+}
 const managedItems = new Set();
 function resetGalleryAnimation() {
-  galleryIntro?.kill(); galleryIntro = null;
-  modalTween?.kill(); modalTween = null;
+  galleryContext?.revert(); galleryContext = null;
+  galleryIntro = null; modalTween = null;
   const section = gallerySection.value;
   if (section) {
     const items = section.querySelectorAll('.gallery-item');
@@ -111,8 +118,9 @@ function resetGalleryAnimation() {
 function enterGallery() {
   if (!allowMotion.value || !gallerySection.value) return;
   galleryIntro?.kill();
-  galleryIntro = gsap.fromTo(gallerySection.value,
-    {opacity: .7, y: 24}, {opacity: 1, y: 0, duration: .5, ease: 'power3.out', clearProps: 'transform,opacity'});
+  if (!galleryContext) galleryContext = gsap.context(() => {}, gallerySection.value);
+  galleryIntro = scopedTween(() => gsap.fromTo(gallerySection.value,
+    {opacity: .7, y: 24}, {opacity: 1, y: 0, duration: .5, ease: 'power3.out', clearProps: 'transform,opacity'}));
 }
 function attachGalleryHover() {
   if (!gallerySection.value || !allowMotion.value || !window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
@@ -178,14 +186,14 @@ onMounted(async () => {
   mouseOverHandler = (e) => {
     const item = e.target?.closest?.('.gallery-item');
     if (item && gallerySection.value?.contains(item) && allowMotion.value) {
-      gsap.to(item, {scale: 1.03, duration: .2, ease: 'power1.out', overwrite: 'auto'});
+      scopedTween(() => gsap.to(item, {scale: 1.03, duration: .2, ease: 'power1.out', overwrite: 'auto'}));
     }
   };
 
   mouseOutHandler = (e) => {
     const item = e.target?.closest?.('.gallery-item');
     if (item && gallerySection.value?.contains(item) && !item.contains(e.relatedTarget) && allowMotion.value) {
-      gsap.to(item, {scale: 1, duration: .2, ease: 'power1.inOut', overwrite: 'auto', clearProps: 'transform'});
+      scopedTween(() => gsap.to(item, {scale: 1, duration: .2, ease: 'power1.inOut', overwrite: 'auto', clearProps: 'transform'}));
     }
   };
 
@@ -193,6 +201,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  unmounted = true;
   if (observer && loadMoreTrigger.value) {
     observer.unobserve(loadMoreTrigger.value);
   }
@@ -216,13 +225,13 @@ watch(showModal, async (val) => {
   await nextTick();
   const modal = document.querySelector(".modal-content");
 
-  if (modal && val && allowMotion.value) {
+  if (modal && val && allowMotion.value && !unmounted) {
     modalTween?.kill();
-    modalTween = gsap.fromTo(
+    modalTween = scopedTween(() => gsap.fromTo(
         modal,
         {scale: 0.8, opacity: 0},
         {scale: 1, opacity: 1, duration: 0.3, ease: "power2.out", clearProps: 'transform,opacity'}
-    );
+    ));
   }
 });
 
@@ -233,7 +242,7 @@ function animateItem(event) {
   const el = target.closest(".gallery-item");
   if (!el || el.classList.contains("animated") || !allowMotion.value) return;
 
-  gsap.fromTo(
+  scopedTween(() => gsap.fromTo(
       el,
       {
         autoAlpha: 0,
@@ -245,7 +254,7 @@ function animateItem(event) {
         duration: 0.4,
         ease: "power1.out"
       }
-  );
+  ));
 
   el.classList.add("animated");
   managedItems.add(el);

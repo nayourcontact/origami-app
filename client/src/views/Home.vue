@@ -190,21 +190,21 @@ function attachHeroPointer(hero) {
       const rect = hero.getBoundingClientRect();
       const x = gsap.utils.clamp(-.5, .5, (position.x - rect.left) / rect.width - .5);
       const y = gsap.utils.clamp(-.5, .5, (position.y - rect.top) / rect.height - .5);
-      gsap.to(hero, {x: x * 3, y: y * 2, rotateX: -y * 4, rotateY: x * 5, duration: .65, overwrite: 'auto', ease});
-      gsap.to(title, {x: x * 14, y: y * 10, duration: .7, overwrite: 'auto', ease});
-      gsap.to(label, {x: x * 6, y: y * 4, duration: .75, overwrite: 'auto', ease});
-      gsap.to(subtitle, {x: x * 8, y: y * 5, duration: .8, overwrite: 'auto', ease});
-      gsap.to(shapeOne, {x: x * -32, y: y * -24, rotate: -18 + x * 8, duration: .9, overwrite: 'auto', ease});
-      gsap.to(shapeTwo, {x: x * 30, y: y * 22, rotate: 22 + x * 7, scale: .75, duration: .9, overwrite: 'auto', ease});
+      activeContext?.add(() => gsap.to(hero, {x: x * 3, y: y * 2, rotateX: -y * 4, rotateY: x * 5, duration: .65, overwrite: 'auto', ease}));
+      activeContext?.add(() => gsap.to(title, {x: x * 14, y: y * 10, duration: .7, overwrite: 'auto', ease}));
+      activeContext?.add(() => gsap.to(label, {x: x * 6, y: y * 4, duration: .75, overwrite: 'auto', ease}));
+      activeContext?.add(() => gsap.to(subtitle, {x: x * 8, y: y * 5, duration: .8, overwrite: 'auto', ease}));
+      activeContext?.add(() => gsap.to(shapeOne, {x: x * -32, y: y * -24, rotate: -18 + x * 8, duration: .9, overwrite: 'auto', ease}));
+      activeContext?.add(() => gsap.to(shapeTwo, {x: x * 30, y: y * 22, rotate: 22 + x * 7, scale: .75, duration: .9, overwrite: 'auto', ease}));
     });
   };
   const reset = () => {
     if (frame) cancelAnimationFrame(frame);
     frame = 0;
     position = null;
-    gsap.to([hero, title, label, subtitle], {x: 0, y: 0, rotateX: 0, rotateY: 0, duration: .8, overwrite: 'auto', ease});
-    gsap.to(shapeOne, {x: 0, y: 0, rotate: -18, duration: .85, overwrite: 'auto', ease});
-    gsap.to(shapeTwo, {x: 0, y: 0, rotate: 22, scale: .75, duration: .85, overwrite: 'auto', ease});
+    activeContext?.add(() => gsap.to([hero, title, label, subtitle], {x: 0, y: 0, rotateX: 0, rotateY: 0, duration: .8, overwrite: 'auto', ease}));
+    activeContext?.add(() => gsap.to(shapeOne, {x: 0, y: 0, rotate: -18, duration: .85, overwrite: 'auto', ease}));
+    activeContext?.add(() => gsap.to(shapeTwo, {x: 0, y: 0, rotate: 22, scale: .75, duration: .85, overwrite: 'auto', ease}));
   };
   hero.addEventListener('pointermove', move, {passive: true});
   hero.addEventListener('pointerleave', reset);
@@ -221,13 +221,13 @@ function attachGalleryFocus(gallery, items) {
   items.forEach(item => {
     const media = item.querySelector('img, video');
     const enter = () => {
-      gsap.to(items, {opacity: .48, scale: .965, filter: 'blur(2px) saturate(.82)', duration: .35, overwrite: 'auto', ease: 'power3.out'});
-      gsap.to(item, {opacity: 1, scale: 1.075, y: -14, zIndex: 20, filter: 'blur(0px) saturate(1.05)', boxShadow: '0 34px 90px rgba(35,26,20,.18)', duration: .4, overwrite: 'auto', ease: 'power3.out'});
-      if (media) gsap.to(media, {scale: 1.055, duration: .45, overwrite: 'auto', ease: 'power3.out'});
+      activeContext?.add(() => gsap.to(items, {opacity: .48, scale: .965, filter: 'blur(2px) saturate(.82)', duration: .35, overwrite: 'auto', ease: 'power3.out'}));
+      activeContext?.add(() => gsap.to(item, {opacity: 1, scale: 1.075, y: -14, zIndex: 20, filter: 'blur(0px) saturate(1.05)', boxShadow: '0 34px 90px rgba(35,26,20,.18)', duration: .4, overwrite: 'auto', ease: 'power3.out'}));
+      if (media) activeContext?.add(() => gsap.to(media, {scale: 1.055, duration: .45, overwrite: 'auto', ease: 'power3.out'}));
     };
     const leave = () => {
-      gsap.to(items, {opacity: 1, scale: 1, y: 0, filter: 'blur(0px) saturate(1)', boxShadow: '0 14px 32px rgba(35,26,20,.07)', duration: .4, overwrite: 'auto', ease: 'power3.out', onComplete: () => items.forEach(el => { el.style.zIndex = ''; })});
-      if (media) gsap.to(media, {scale: 1, duration: .4, overwrite: 'auto', ease: 'power3.out'});
+      activeContext?.add(() => gsap.to(items, {opacity: 1, scale: 1, y: 0, filter: 'blur(0px) saturate(1)', boxShadow: '0 14px 32px rgba(35,26,20,.07)', duration: .4, overwrite: 'auto', ease: 'power3.out', onComplete: () => items.forEach(el => { el.style.zIndex = ''; })}));
+      if (media) activeContext?.add(() => gsap.to(media, {scale: 1, duration: .4, overwrite: 'auto', ease: 'power3.out'}));
     };
     item.addEventListener('pointerenter', enter);
     item.addEventListener('pointerleave', leave);
