@@ -341,6 +341,8 @@ export default {
       this._motionVersion = (this._motionVersion || 0) + 1;
       (this._motionCleanups || []).forEach(fn => fn());
       this._motionCleanups = [];
+      this._eventCardsTrigger?.kill();
+      this._eventCardsTrigger = null;
       this._motionContext?.revert();
       this._motionContext = null;
     },
@@ -390,7 +392,7 @@ export default {
           if (!rect.width || !rect.height) return;
           const x = gsap.utils.clamp(-.5, .5, (pointer.x - rect.left) / rect.width - .5);
           const y = gsap.utils.clamp(-.5, .5, (pointer.y - rect.top) / rect.height - .5);
-          const tween = (target, vars) => { if (target) gsap.to(target, {duration: .65, overwrite: 'auto', ease: 'power3.out', ...vars}); };
+          const tween = (target, vars) => { if (target) this._motionContext?.add(() => gsap.to(target, {duration: .65, overwrite: 'auto', ease: 'power3.out', ...vars})); };
           tween(hero, {x: x * 3, y: y * 2, rotateX: y * -4, rotateY: x * 5});
           tween(title, {x: x * 14, y: y * 10});
           tween(kicker, {x: x * 6, y: y * 4});
@@ -404,10 +406,10 @@ export default {
         if (raf) cancelAnimationFrame(raf);
         raf = 0;
         pointer = null;
-        gsap.to([hero, ...targets], {x: 0, y: 0, rotateX: 0, rotateY: 0, duration: .65, overwrite: 'auto', ease: 'power3.out'});
-        if (large) gsap.to(large, {rotation: 0, duration: .65, overwrite: 'auto'});
-        if (small) gsap.to(small, {rotation: 0, duration: .65, overwrite: 'auto'});
-        if (line) gsap.to(line, {rotation: 45, duration: .65, overwrite: 'auto'});
+        this._motionContext?.add(() => gsap.to([hero, ...targets], {x: 0, y: 0, rotateX: 0, rotateY: 0, duration: .65, overwrite: 'auto', ease: 'power3.out'}));
+        if (large) this._motionContext?.add(() => gsap.to(large, {rotation: 0, duration: .65, overwrite: 'auto'}));
+        if (small) this._motionContext?.add(() => gsap.to(small, {rotation: 0, duration: .65, overwrite: 'auto'}));
+        if (line) this._motionContext?.add(() => gsap.to(line, {rotation: 45, duration: .65, overwrite: 'auto'}));
       };
       hero.addEventListener('pointermove', move, {passive: true});
       hero.addEventListener('pointerleave', reset);
@@ -423,12 +425,12 @@ export default {
       list.querySelectorAll('.event-card').forEach(card => {
         const media = card.querySelector('.event-cover');
         const enter = () => {
-          gsap.to(card, {y: -6, scale: 1.012, duration: .4, ease: 'power3.out', overwrite: 'auto'});
-          if (media) gsap.to(media, {scale: 1.045, duration: .55, ease: 'power3.out', overwrite: 'auto'});
+          this._motionContext?.add(() => gsap.to(card, {y: -6, scale: 1.012, duration: .4, ease: 'power3.out', overwrite: 'auto'}));
+          if (media) this._motionContext?.add(() => gsap.to(media, {scale: 1.045, duration: .55, ease: 'power3.out', overwrite: 'auto'}));
         };
         const leave = () => {
-          gsap.to(card, {y: 0, scale: 1, duration: .45, ease: 'power3.out', overwrite: 'auto'});
-          if (media) gsap.to(media, {scale: 1, duration: .45, ease: 'power3.out', overwrite: 'auto'});
+          this._motionContext?.add(() => gsap.to(card, {y: 0, scale: 1, duration: .45, ease: 'power3.out', overwrite: 'auto'}));
+          if (media) this._motionContext?.add(() => gsap.to(media, {scale: 1, duration: .45, ease: 'power3.out', overwrite: 'auto'}));
         };
         card.addEventListener('pointerenter', enter);
         card.addEventListener('pointerleave', leave);
@@ -714,9 +716,9 @@ export default {
       const cards = gsap.utils.toArray(list?.querySelectorAll(".event-card") || []);
       if (!cards.length) return;
 
-      ScrollTrigger.getAll().forEach((trigger) => {
-        if (trigger.vars?.trigger === list) trigger.kill();
-      });
+      // Never destroy triggers owned by other pages/components.
+      this._eventCardsTrigger?.kill();
+      this._eventCardsTrigger = null;
 
       gsap.killTweensOf(cards);
 
@@ -735,6 +737,8 @@ export default {
           once: true
         }
       });
+
+      this._eventCardsTrigger = tl.scrollTrigger || null;
 
       tl.to(cards, {
         autoAlpha: 1,
