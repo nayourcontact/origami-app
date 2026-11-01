@@ -9,7 +9,20 @@ export const hasMore = ref(true);
 export const page = ref(1);
 
 const limit = 9;
-let lastCall = 0;
+let requestGeneration = 0;
+
+export function resetGalleryPosts() {
+    requestGeneration++;
+    posts.value = [];
+    page.value = 1;
+    hasMore.value = true;
+    isLoading.value = false;
+}
+
+export function cancelGalleryPosts() {
+    requestGeneration++;
+    isLoading.value = false;
+}
 
 const toAbsoluteMediaUrl = (url) => {
     if (!url) return null;
@@ -20,6 +33,7 @@ const toAbsoluteMediaUrl = (url) => {
 export async function loadMorePosts(currentLanguage) {
     if (isLoading.value || !hasMore.value) return;
     isLoading.value = true;
+    const generation = requestGeneration;
 
     try {
         const res = await axios.get(
@@ -32,6 +46,7 @@ export async function loadMorePosts(currentLanguage) {
             thumbnailUrl: toAbsoluteMediaUrl(post.thumbnailUrl),
         }));
 
+        if (generation !== requestGeneration) return;
         posts.value.push(...newPosts);
         page.value++;
 
@@ -39,6 +54,7 @@ export async function loadMorePosts(currentLanguage) {
             hasMore.value = false;
         }
     } catch (err) {
+        if (generation !== requestGeneration) return;
         console.error("Could not load more posts:", err);
         setTimeout(() => {
             window.showToast?.(
@@ -47,6 +63,6 @@ export async function loadMorePosts(currentLanguage) {
             );
         });
     } finally {
-        isLoading.value = false;
+        if (generation === requestGeneration) isLoading.value = false;
     }
 }
