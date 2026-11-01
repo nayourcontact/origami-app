@@ -21,7 +21,7 @@ app.use(helmet({
 }));
 app.use(cors({
     origin: [process.env.CLIENT_ORIGIN],
-    methods: ["GET", "POST", "PUT"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true
 }));
 app.use(express.json());
