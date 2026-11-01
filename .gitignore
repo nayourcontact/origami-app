@@ -26,3 +26,8 @@ server/.env
 
 # frontend config (sensitive)
 client/src/config.js
+# Never commit environment credentials or backup copies
+.env
+.env.*
+!.env.example
+*.env.bak

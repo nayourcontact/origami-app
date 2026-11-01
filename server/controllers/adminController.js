@@ -8,7 +8,7 @@ const subscriberService = require("../services/subscriberService");
 const { decrypt } = require("../utils/encryption");
 
 const localesPath = path.join(__dirname, "../../client/src/locales");
-const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const login = async (req, res) => {
     const {email, password} = req.body;
