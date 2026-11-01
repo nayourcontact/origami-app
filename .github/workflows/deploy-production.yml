@@ -137,31 +137,3 @@ jobs:
             exit 1
           fi
           echo "Fingerprint secret is present and correctly formatted"
-
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.DO_HOST }}
-          username: ${{ secrets.DO_USER }}
-          key: ${{ secrets.DO_SSH_KEY }}
-          fingerprint: ${{ secrets.DO_HOST_FINGERPRINT }}
-          port: 22
-          envs: DEPLOY_SHA
-          command_timeout: 15m
-          script: |
-            set -eu
-            cd /home/app/app
-            test -z "$(git status --porcelain --untracked-files=no)" || { echo 'ERROR: Uncommitted tracked changes on droplet'; exit 1; }
-            git fetch origin main
-            git checkout main
-            test "$(git rev-parse origin/main)" = "$DEPLOY_SHA" || { echo 'ERROR: main advanced since workflow began; refusing stale deploy'; exit 1; }
-            git merge --ff-only origin/main
-            cd /home/app/app/server
-            npm ci --omit=dev
-            cd /home/app/app/client
-            npm ci
-            npm run build
-            cd /home/app/app/server
-            pm2 restart origami-app --update-env
-            pm2 status origami-app
-            echo "Deployed commit: $DEPLOY_SHA"
