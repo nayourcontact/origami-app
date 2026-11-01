@@ -1,4 +1,11 @@
 require('dotenv').config({ path: __dirname + '/.env' });
+const { validateConfig } = require('./utils/config');
+try {
+    validateConfig();
+} catch (error) {
+    console.error('[CONFIG] Startup aborted:', error.message);
+    process.exit(1);
+}
 const mongoose = require("mongoose");
 const app = require("./app");
 const {
