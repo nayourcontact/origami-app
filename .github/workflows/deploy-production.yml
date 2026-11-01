@@ -37,8 +37,30 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment: production
-
     steps:
+      - name: Verify server host key
+        shell: bash
+        env:
+          DO_HOST: ${{ secrets.DO_HOST }}
+          EXPECTED_FINGERPRINT: ${{ secrets.DO_HOST_FINGERPRINT }}
+        run: |
+          set -euo pipefail
+
+          ssh-keyscan -T 10 -t ed25519,ecdsa,rsa "$DO_HOST" \
+            2>/dev/null > /tmp/origami-hostkeys
+
+          test -s /tmp/origami-hostkeys
+
+          ssh-keygen -lf /tmp/origami-hostkeys -E sha256
+
+          if ssh-keygen -lf /tmp/origami-hostkeys -E sha256 |
+            awk -v expected="$EXPECTED_FINGERPRINT" \
+            '$2 == expected { found=1 } END { exit !found }'; then
+            echo "Host fingerprint matches a server key"
+          else
+            echo "::error::Fingerprint does not match any advertised host key"
+            exit 1
+          fi
       - name: Validate SSH fingerprint configuration
         env:
           HOST_FINGERPRINT: ${{ secrets.DO_HOST_FINGERPRINT }}
