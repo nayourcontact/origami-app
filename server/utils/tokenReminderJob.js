@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const TokenModel = require('../models/InstagramToken');
 const { sendTokenExpiryReminder } = require('../services/emailService'); // helyes path-ot állíts be
-require('dotenv').config();
+
 
 const checkTokenExpirations = async () => {
     try {
@@ -24,7 +24,9 @@ const checkTokenExpirations = async () => {
     }
 };
 
-//cron.schedule('0 1 * * *', () => {
+function startTokenReminderJob() {
     console.log('[REMINDER JOB] Running token expiration check...');
     checkTokenExpirations();
-//});
+    return cron.schedule('0 1 * * *', checkTokenExpirations, {timezone:'Europe/Budapest'});
+}
+module.exports = {startTokenReminderJob, checkTokenExpirations};

@@ -17,7 +17,11 @@ function validateConfig(env = process.env) {
     if (!['http:', 'https:'].includes(origin.protocol) || origin.origin !== env.CLIENT_ORIGIN.replace(/\/$/, '')) {
         throw new Error('CLIENT_ORIGIN must be an http(s) origin without a path');
     }
-    return Object.freeze({ jwtSecret: env.JWT_SECRET });
+    const port = Number(env.PORT || 3000);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT must be a valid TCP port');
+    const host = env.HOST || '127.0.0.1';
+    if (!['127.0.0.1', '0.0.0.0', '::1'].includes(host)) throw new Error('HOST must be an allowed bind address');
+    return Object.freeze({ jwtSecret: env.JWT_SECRET, port, host });
 }
 
 module.exports = { validateConfig };

@@ -103,6 +103,7 @@ jobs:
               set -euo pipefail
 
               cd /home/app/app
+              PREVIOUS_REVISION=$(git rev-parse HEAD)
               git fetch origin main
               git checkout main
               git pull --ff-only origin main
@@ -117,6 +118,15 @@ jobs:
               cd /home/app/app/server
               pm2 restart origami-app --update-env
               pm2 status origami-app
+              if ! bash /home/app/app/ops/deploy-smoke.sh; then
+                echo 'Health check failed; attempting rollback to previous commit'
+                git -C /home/app/app reset --hard "$PREVIOUS_REVISION"
+                cd /home/app/app/server && npm ci
+                cd /home/app/app/client && npm ci && npm run build
+                pm2 restart origami-app --update-env
+                bash /home/app/app/ops/deploy-smoke.sh || true
+                exit 1
+              fi
               pm2 logs origami-app --lines 30 --nostream
           REMOTE
       - name: Verify server host key

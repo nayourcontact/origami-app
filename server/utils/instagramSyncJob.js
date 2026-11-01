@@ -37,7 +37,7 @@ const runInstagramSyncForAllUsers = async () => {
 const startInstagramSyncJob = () => {
     console.log('[INSTAGRAM SYNC] Scheduling weekly job for Sunday 08:00');
 
-    cron.schedule(
+    return cron.schedule(
         '0 8 * * 0',
         async () => {
             await runInstagramSyncForAllUsers();
