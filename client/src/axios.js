@@ -2,7 +2,7 @@ import axios from 'axios';
 import CryptoJS from 'crypto-js';
 
 const instance = axios.create({
-    baseURL: '/api',
+    baseURL: '/',
 });
 
 instance.interceptors.request.use((config) => {
