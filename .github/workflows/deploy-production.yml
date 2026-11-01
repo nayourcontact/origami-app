@@ -3,6 +3,8 @@ name: Deploy Origami to DigitalOcean
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -14,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    name: Verify frontend build
+    name: Quality gate (tests, audit, build)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout exact commit
@@ -24,10 +26,24 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: client/package-lock.json
+          cache-dependency-path: |
+            client/package-lock.json
+            server/package-lock.json
+      - name: Install backend dependencies
+        working-directory: server
+        run: npm ci
+      - name: Backend unit and HTTP integration tests
+        working-directory: server
+        run: npm test
+      - name: Backend production dependency audit
+        working-directory: server
+        run: npm audit --omit=dev --audit-level=high
       - name: Install frontend dependencies
         working-directory: client
         run: npm ci
+      - name: Frontend production dependency audit
+        working-directory: client
+        run: npm audit --omit=dev --audit-level=high
       - name: Build frontend
         working-directory: client
         run: npm run build
@@ -35,6 +51,7 @@ jobs:
   deploy:
     name: Deploy to droplet
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment: production
     steps:
