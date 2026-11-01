@@ -1,4 +1,4 @@
-import api from "../axios.js";
+import api, {clearCsrfToken} from "../axios.js";
 import {API_BASE_URL, INSTAGRAM_USER_ID} from "../config.js";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -14,6 +14,7 @@ export default {
             languageModalOpen: false,
             saving: false,
             activeTab: 'token',
+            loggingOut: false,
             newToken: '',
             saveTokenMessage: '',
             tokenModalOpen: false,
@@ -50,6 +51,20 @@ export default {
         },
     },
     methods: {
+        async logout() {
+            if (this.loggingOut) return;
+            this.loggingOut = true;
+            try {
+                await api.post('/api/admin/logout');
+                clearCsrfToken();
+                await this.$router.replace('/admin/login');
+            } catch (err) {
+                console.error('Kijelentkezés sikertelen:', err.response?.status || err.message);
+                window.showToast?.('Nem sikerült kijelentkezni. Próbáld újra.', 'error');
+            } finally {
+                this.loggingOut = false;
+            }
+        },
         isUpcoming(date) {
             return new Date(date) >= new Date();
         },
@@ -74,18 +89,9 @@ export default {
             };
         },
 
-        getAdminHeaders() {
-            const token = localStorage.getItem("adminToken");
-            return {
-                Authorization: `Bearer ${token}`,
-            };
-        },
-
         async fetchEvents() {
             try {
-                const res = await api.get(`${API_BASE_URL}/api/admin/events`, {
-                    headers: this.getAdminHeaders(),
-                });
+                const res = await api.get(`${API_BASE_URL}/api/admin/events`);
 
                 this.events = Array.isArray(res.data) ? res.data : [];
             } catch (err) {
@@ -119,7 +125,6 @@ export default {
 
                 await api.post(`${API_BASE_URL}/api/admin/events`, formData, {
                     headers: {
-                        ...this.getAdminHeaders(),
                         "Content-Type": "multipart/form-data",
                     },
                 });
@@ -148,7 +153,6 @@ export default {
 
                 await api.post(`${API_BASE_URL}/api/admin/events/${eventId}/gallery`, formData, {
                     headers: {
-                        ...this.getAdminHeaders(),
                         "Content-Type": "multipart/form-data",
                     },
                 });
@@ -166,9 +170,7 @@ export default {
             if (!confirm("Biztosan törlöd ezt az eseményt?")) return;
 
             try {
-                await api.delete(`${API_BASE_URL}/api/admin/events/${eventId}`, {
-                    headers: this.getAdminHeaders(),
-                });
+                await api.delete(`${API_BASE_URL}/api/admin/events/${eventId}`);
 
                 window.showToast?.("Esemény törölve.", "info");
 

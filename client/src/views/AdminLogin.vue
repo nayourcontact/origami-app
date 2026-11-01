@@ -38,9 +38,7 @@
 </template>
 
 <script>
-import axios from 'axios';
-import {API_BASE_URL} from "../config";
-import CryptoJS from "crypto-js";
+import api, { setCsrfToken } from '../axios.js';
 
 export default {
   name: 'AdminLogin',
@@ -54,16 +52,14 @@ export default {
   methods: {
     async handleLogin() {
       try {
-        const response = await axios.post(`${API_BASE_URL}/api/admin/login`, {
+        const response = await api.post('/api/admin/login', {
           email: this.email,
           password: this.password
         })
 
-        const {token, role} = response.data
-
-        const encryptedToken = CryptoJS.AES.encrypt(token, "secretKey").toString();
-        localStorage.setItem("adminToken", encryptedToken);
-        localStorage.setItem('role', role)
+        setCsrfToken(response.data.csrfToken);
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('role');
 
         await this.$router.push('/admin/dashboard')
       } catch (err) {

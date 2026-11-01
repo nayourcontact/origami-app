@@ -8,8 +8,8 @@ import AdminDashboard from "../views/AdminDashboard.vue";
 import AdminLogin from "../views/AdminLogin.vue";
 import {t} from "../locales";
 import Events from "../views/Events.vue";
-import api from "../axios.js";
-import { API_BASE_URL, INSTAGRAM_USER_ID } from "../config.js";
+import { getAdminSession } from "../axios.js";
+
 
 const getSavedLanguage = () =>
     localStorage.getItem("language") ||
@@ -95,21 +95,10 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const isAdminRoute = to.path.startsWith("/admin");
-    const token = localStorage.getItem("adminToken");
-
     if (isAdminRoute && to.path !== "/admin/login") {
-        if (!token) {
-            return next("/admin/login");
-        }
-
         try {
-            await api.get(`${API_BASE_URL}/api/admin/status`, {
-                params: {
-                    userId: INSTAGRAM_USER_ID
-                },
-            });
+            await getAdminSession();
         } catch (err) {
-            localStorage.removeItem("adminToken");
             return next("/admin/login");
         }
     }

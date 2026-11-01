@@ -6,6 +6,7 @@ const auth = require("../utils/authMiddleware");
 const requireAdmin = require("../utils/requireAdmin");
 const loginLimiter = require("../utils/loginLimiter");
 const eventRoutes = require("./eventRoutes");
+const { trustedOrigin } = require("../utils/adminSession");
 
 // Validációs hibaellenőrző middleware
 function handleValidationErrors(req, res, next) {
@@ -21,6 +22,7 @@ function handleValidationErrors(req, res, next) {
 router.post(
     "/login",
     loginLimiter,
+    (req, res, next) => trustedOrigin(req) ? next() : res.status(403).json({message: "Origin tiltva."}),
     [
         body("email").isEmail().withMessage("Érvényes email szükséges.").normalizeEmail(),
         body("password").isLength({ min: 6 }).withMessage("A jelszónak legalább 6 karakter hosszúnak kell lennie.")
@@ -31,6 +33,7 @@ router.post(
 
 router.post(
     "/register",
+    (req, res, next) => trustedOrigin(req) ? next() : res.status(403).json({message: "Origin tiltva."}),
     [
         body("email").isEmail().withMessage("Érvényes email szükséges.").normalizeEmail(),
         body("password").isLength({ min: 6 }).withMessage("A jelszónak legalább 6 karakter hosszúnak kell lennie.")
@@ -41,8 +44,10 @@ router.post(
 
 // 🟠 Auth alatti, védett végpontok
 
-router.use(auth);
-router.use("/events", eventRoutes);
+router.use(auth, requireAdmin);
+router.get('/session', requireAdmin, adminController.session);
+router.post('/logout', requireAdmin, adminController.logout);
+router.use("/events", requireAdmin, eventRoutes);
 
 router.put(
     "/email",
