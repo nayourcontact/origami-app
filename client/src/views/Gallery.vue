@@ -71,7 +71,8 @@ import {
   loadMorePosts,
   hasMore,
   isLoading,
-  page,
+  resetGalleryPosts,
+  cancelGalleryPosts,
 } from "../composables/Gallery.js";
 import {onMounted, onUnmounted, ref, computed, nextTick, watch} from "vue";
 import {useRoute} from "vue-router";
@@ -143,11 +144,7 @@ onMounted(async () => {
   await nextTick();
 
   enterGallery();
-  if (!Array.isArray(posts.value)) {
-    posts.value = [];
-  }
-  page.value = 1;
-  hasMore.value = true;
+  resetGalleryPosts();
   loadedItems.value = {};
 
   await loadMorePosts(currentLanguage);
@@ -164,10 +161,12 @@ onMounted(async () => {
   observer = new IntersectionObserver(async (entries) => {
     if (entries[0]?.isIntersecting && hasMore.value && !isLoading.value) {
       await loadMorePosts(currentLanguage);
+      if (unmounted) return;
       await nextTick();
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
+          if (unmounted) return;
           refreshScroll();
           window.dispatchEvent(new Event('resize'));
         });
@@ -202,6 +201,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   unmounted = true;
+  cancelGalleryPosts();
   if (observer && loadMoreTrigger.value) {
     observer.unobserve(loadMoreTrigger.value);
   }
@@ -286,15 +286,17 @@ async function ensureScrollable() {
   await nextTick();
 
   while (
-      hasMore.value &&
+      !unmounted && hasMore.value &&
       document.documentElement.scrollHeight <= window.innerHeight + 20
       ) {
     await loadMorePosts(currentLanguage);
+    if (unmounted) return;
     await nextTick();
 
     await new Promise((resolve) => {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
+          if (unmounted) return;
           refreshScroll();
           resolve();
         });
