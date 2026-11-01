@@ -24,9 +24,9 @@
                 v-else-if="post.mediaType === 'VIDEO'"
                 :src="post.mediaUrl"
                 preload="metadata"
-                autoplay
+                :autoplay="allowMotion"
                 muted
-                loop
+                :loop="allowMotion"
                 playsinline
                 controls
                 @loadeddata="handleLoad(index, $event)"
@@ -54,9 +54,9 @@
         <video
             v-else-if="selectedPost?.mediaType === 'VIDEO'"
             :src="selectedPost.mediaUrl"
-            autoplay
+            :autoplay="allowMotion"
             muted
-            loop
+            :loop="allowMotion"
             playsinline
             controls
         />
@@ -78,6 +78,7 @@ import {useRoute} from "vue-router";
 import {t} from "../locales";
 import "../assets/styles/Gallery.css";
 import gsap from "gsap";
+import { allowMotion } from "../composables/performance.js";
 import { refreshLenis } from "../composables/LenisSingleton.js";
 
 const route = useRoute();
@@ -91,24 +92,49 @@ const headingSection = ref(null);
 const gallerySection = ref(null);
 
 let observer = null;
+let galleryIntro = null;
+let modalTween = null;
+const managedItems = new Set();
+function resetGalleryAnimation() {
+  galleryIntro?.kill(); galleryIntro = null;
+  modalTween?.kill(); modalTween = null;
+  const section = gallerySection.value;
+  if (section) {
+    const items = section.querySelectorAll('.gallery-item');
+    gsap.killTweensOf([section, ...items]);
+    gsap.set([section, ...items], {clearProps: 'transform,opacity,visibility'});
+    managedItems.clear();
+  }
+  const modal = document.querySelector('.modal-content');
+  if (modal) {gsap.killTweensOf(modal);gsap.set(modal, {clearProps: 'transform,opacity,visibility'});}
+}
+function enterGallery() {
+  if (!allowMotion.value || !gallerySection.value) return;
+  galleryIntro?.kill();
+  galleryIntro = gsap.fromTo(gallerySection.value,
+    {opacity: .7, y: 24}, {opacity: 1, y: 0, duration: .5, ease: 'power3.out', clearProps: 'transform,opacity'});
+}
+function attachGalleryHover() {
+  if (!gallerySection.value || !allowMotion.value || !window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  gallerySection.value.addEventListener('pointerover', mouseOverHandler);
+  gallerySection.value.addEventListener('pointerout', mouseOutHandler);
+}
+function detachGalleryHover() {
+  gallerySection.value?.removeEventListener('pointerover', mouseOverHandler);
+  gallerySection.value?.removeEventListener('pointerout', mouseOutHandler);
+}
+watch(allowMotion, async (enabled) => {
+  detachGalleryHover();resetGalleryAnimation();
+  await nextTick();
+  if (enabled) {enterGallery();attachGalleryHover();}
+}, {flush: 'post'});
 let mouseOverHandler = null;
 let mouseOutHandler = null;
 
 onMounted(async () => {
   await nextTick();
 
-  const tl = gsap.timeline({
-    defaults: {opacity: 0, y: 40, duration: 0.5, ease: "power3.out"}
-  });
-
-  if (headingSection.value) {
-    tl.from(headingSection.value, {});
-  }
-
-  if (gallerySection.value) {
-    tl.from(gallerySection.value, {}, headingSection.value ? "-=0.3" : undefined);
-  }
-
+  enterGallery();
   if (!Array.isArray(posts.value)) {
     posts.value = [];
   }
@@ -150,21 +176,20 @@ onMounted(async () => {
   }
 
   mouseOverHandler = (e) => {
-    const item = e.target?.closest?.(".gallery-item");
-    if (item) {
-      gsap.to(item, {scale: 1.03, duration: 0.2, ease: "power1.out"});
+    const item = e.target?.closest?.('.gallery-item');
+    if (item && gallerySection.value?.contains(item) && allowMotion.value) {
+      gsap.to(item, {scale: 1.03, duration: .2, ease: 'power1.out', overwrite: 'auto'});
     }
   };
 
   mouseOutHandler = (e) => {
-    const item = e.target?.closest?.(".gallery-item");
-    if (item) {
-      gsap.to(item, {scale: 1, duration: 0.2, ease: "power1.inOut"});
+    const item = e.target?.closest?.('.gallery-item');
+    if (item && gallerySection.value?.contains(item) && !item.contains(e.relatedTarget) && allowMotion.value) {
+      gsap.to(item, {scale: 1, duration: .2, ease: 'power1.inOut', overwrite: 'auto', clearProps: 'transform'});
     }
   };
 
-  document.addEventListener("mouseover", mouseOverHandler);
-  document.addEventListener("mouseout", mouseOutHandler);
+  attachGalleryHover();
 });
 
 onUnmounted(() => {
@@ -172,13 +197,9 @@ onUnmounted(() => {
     observer.unobserve(loadMoreTrigger.value);
   }
 
-  if (mouseOverHandler) {
-    document.removeEventListener("mouseover", mouseOverHandler);
-  }
-
-  if (mouseOutHandler) {
-    document.removeEventListener("mouseout", mouseOutHandler);
-  }
+  detachGalleryHover();
+  resetGalleryAnimation();
+  observer?.disconnect();
 });
 
 function openModal(post) {
@@ -195,11 +216,12 @@ watch(showModal, async (val) => {
   await nextTick();
   const modal = document.querySelector(".modal-content");
 
-  if (modal && val) {
-    gsap.fromTo(
+  if (modal && val && allowMotion.value) {
+    modalTween?.kill();
+    modalTween = gsap.fromTo(
         modal,
         {scale: 0.8, opacity: 0},
-        {scale: 1, opacity: 1, duration: 0.3, ease: "power2.out"}
+        {scale: 1, opacity: 1, duration: 0.3, ease: "power2.out", clearProps: 'transform,opacity'}
     );
   }
 });
@@ -209,7 +231,7 @@ function animateItem(event) {
   if (!target?.closest) return;
 
   const el = target.closest(".gallery-item");
-  if (!el || el.classList.contains("animated")) return;
+  if (!el || el.classList.contains("animated") || !allowMotion.value) return;
 
   gsap.fromTo(
       el,
@@ -226,6 +248,7 @@ function animateItem(event) {
   );
 
   el.classList.add("animated");
+  managedItems.add(el);
 }
 
 function refreshScroll() {

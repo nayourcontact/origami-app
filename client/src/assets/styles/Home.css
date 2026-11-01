@@ -345,10 +345,10 @@ body::before {
     margin: 0 auto 50px;
     padding: clamp(1.5rem, 3vw, 2.4rem);
     min-height: auto;
-    opacity: 0;
-    visibility: hidden;
-    filter: blur(16px);
-    transform: translateY(34px) scale(0.985);
+    opacity: 1;
+    visibility: visible;
+    filter: none;
+    transform: none;
 }
 
 .intro-text-section::before {
@@ -818,19 +818,19 @@ body::before {
 .bio-section .hero-label,
 .bio-section .bio-heading,
 .bio-section .hero-subtitle {
-    opacity: 0;
-    transform: translateY(30px);
+    opacity: 1;
+    transform: none;
 }
 
 .bio-section .bio-origami-shape {
-    opacity: 0;
-    transform: scale(0.55) rotate(-28deg);
+    opacity: 0.75;
+    transform: none;
 }
 
 .bio-section {
-    opacity: 0;
-    filter: blur(18px);
-    transform: translateY(26px) scale(0.985);
+    opacity: 1;
+    filter: none;
+    transform: none;
 }
 
 .bio-section .hero-label,
@@ -1020,3 +1020,16 @@ body::before {
         top: auto;
     }
 }
+
+/* Performance: keep the hero readable independent of JS / ScrollTrigger. */
+.bio-section,
+.bio-section .hero-label,
+.bio-section .bio-heading,
+.bio-section .hero-subtitle {
+    opacity: 1;
+    visibility: visible;
+    filter: none;
+    transform: none;
+    will-change: auto;
+}
+.bio-section { transition: none; }

@@ -233,3 +233,25 @@ body::before {
     radial-gradient(rgba(87, 58, 32, 0.06) 0.8px, transparent 0.8px);
     background-size: 44px 44px, 44px 44px, 9px 9px;
 }
+/* Low-end / accessibility mode: eliminate nonessential visual work. */
+/* Respect reduced-motion in the automatic profile via html.lite-motion.
+   Manual full-mode override is deliberately allowed for testing. */
+.performance-setting { display: flex; align-items: center; gap: .5rem; padding: .5rem 1rem; font: 13px system-ui, sans-serif; background: #f5eee3; color: #382817; }
+.performance-setting select { border: 1px solid #bea78a; border-radius: 4px; padding: .2rem; }
+
+html.lite-motion *, html.lite-motion *::before, html.lite-motion *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+html.lite-motion .intro-section h1, html.lite-motion .intro-section p, html.lite-motion .bio-section, html.lite-motion .bio-heading, html.lite-motion .bio-origami-shape, html.lite-motion .gallery-item { opacity: 1 !important; visibility: visible !important; filter: none !important; }
+
+
+/* Full motion is opt-in or selected automatically. Keep content visible by default. */
+@keyframes origami-motion-enter {from { opacity:.55;transform:translateY(18px) } to {opacity:1;transform:translateY(0)}}
+@keyframes origami-motion-card {from {opacity:.7;transform:translateY(12px)} to {opacity:1;transform:translateY(0)}}
+html.full-motion .bio-section,html.full-motion .events-hero {animation:origami-motion-enter .7s ease-out both}
+html.full-motion .gallery-section--compact .gallery-item,html.full-motion .event-card {animation:origami-motion-card .5s ease-out both}
+html.full-motion .event-card:nth-child(2n),html.full-motion .gallery-section--compact .gallery-item:nth-child(2n){animation-delay:.08s}
+html.lite-motion .bio-section,html.lite-motion .events-hero,html.lite-motion .event-card,html.lite-motion .gallery-item{animation:none!important;opacity:1!important;visibility:visible!important;transform:none!important}
+
+/* GSAP owns entrance motion in full mode; don't run concurrent CSS entrance tweens. */
+html.full-motion .bio-section, html.full-motion .events-hero,
+html.full-motion .gallery-section--compact .gallery-item,
+html.full-motion .event-card { animation: none !important; }

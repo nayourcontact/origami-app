@@ -1,17 +1,19 @@
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { initLenis, refreshLenis } from './composables/LenisSingleton.js'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { initLenis, refreshLenis, destroyLenis } from './composables/LenisSingleton.js'
 import {useRoute} from 'vue-router'
 import Navbar from './components/Navbar.vue'
 import Footer from './components/Footer.vue'
 import axios from 'axios'
 import {API_BASE_URL, INSTAGRAM_USER_ID} from './config.js'
 import Toast from './components/Toast.vue'
+import { allowMotion, allowBackgroundVideo, startPerformanceMonitor, stopPerformanceMonitor } from './composables/performance.js'
 import CookieConsent from './components/CookieConsent.vue'
 
 const route = useRoute()
 const backgroundVideoUrl = ref(null)
 
+const canShowVideo = computed(() => !isAdminRoute.value && allowBackgroundVideo.value)
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 
 const toAbsoluteMediaUrl = (url) => {
@@ -36,6 +38,8 @@ const loadBackgroundVideo = async () => {
 }
 
 watch(() => route.fullPath, async () => {
+  document.documentElement.classList.toggle('lite-motion', !allowMotion.value)
+  document.documentElement.classList.toggle('full-motion', allowMotion.value)
   if (route.path.startsWith('/admin')) {
     document.body.classList.add('admin-mode')
   } else {
@@ -43,6 +47,8 @@ watch(() => route.fullPath, async () => {
   }
 
   await nextTick()
+  if (!isAdminRoute.value && allowMotion.value) initLenis()
+  else destroyLenis()
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       refreshLenis()
@@ -51,10 +57,11 @@ watch(() => route.fullPath, async () => {
 }, { immediate: true })
 
 onMounted(async () => {
-  await loadBackgroundVideo()
+  startPerformanceMonitor()
+  if (canShowVideo.value) await loadBackgroundVideo()
 
   await nextTick()
-  initLenis()
+  if (!isAdminRoute.value && allowMotion.value) initLenis()
 
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
@@ -63,13 +70,19 @@ onMounted(async () => {
     })
   })
 })
+watch([allowMotion, canShowVideo], async () => {
+  document.documentElement.classList.toggle('lite-motion', !allowMotion.value)
+  document.documentElement.classList.toggle('full-motion', allowMotion.value);
+  if (!isAdminRoute.value && allowMotion.value) initLenis(); else destroyLenis();
+  if (canShowVideo.value && !backgroundVideoUrl.value) await loadBackgroundVideo();
+});
+onUnmounted(() => { stopPerformanceMonitor(); destroyLenis(); });
 </script>
 
 <template>
   <div :class="{ 'admin-mode': isAdminRoute }">
     <Navbar v-if="!isAdminRoute"/>
-
-    <div class="video-wrapper" v-if="backgroundVideoUrl && !isAdminRoute">
+    <div class="video-wrapper" v-if="backgroundVideoUrl && canShowVideo">
       <video
           :key="backgroundVideoUrl"
           :src="backgroundVideoUrl"

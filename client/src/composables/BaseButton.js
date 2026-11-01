@@ -1,5 +1,6 @@
-import { computed, ref } from "vue";
+import { computed, ref, watch, onUnmounted } from "vue";
 import { gsap } from "gsap";
+import { allowMotion } from "./performance.js";
 import { t } from "../locales";
 import { useRoute } from "vue-router";
 
@@ -33,7 +34,7 @@ export function useBaseButton(props, emit) {
 
         breatheDelay = null;
 
-        if (!isHovering || buttonRef.value !== button) return;
+        if (!allowMotion.value || !isHovering || buttonRef.value !== button) return;
 
         breatheTween = gsap.to(button, {
             scale: 1.035,
@@ -68,7 +69,7 @@ export function useBaseButton(props, emit) {
     };
 
     const animatePress = () => {
-        if (!buttonRef.value || props.disabled || props.loading) return;
+        if (!allowMotion.value || !buttonRef.value || props.disabled || props.loading) return;
 
         stopBreathe();
 
@@ -114,7 +115,7 @@ export function useBaseButton(props, emit) {
     };
 
     const handleMouseEnter = () => {
-        if (!buttonRef.value || props.disabled || props.loading) return;
+        if (!allowMotion.value || !buttonRef.value || props.disabled || props.loading) return;
 
         isHovering = true;
 
@@ -201,6 +202,7 @@ export function useBaseButton(props, emit) {
 
     const handleMouseLeave = () => {
         if (!buttonRef.value) return;
+        if (!allowMotion.value) { resetOnDisable(); return; }
 
         isHovering = false;
         stopBreathe();
@@ -242,6 +244,24 @@ export function useBaseButton(props, emit) {
             overwrite: "auto",
         });
     };
+
+    function resetOnDisable() {
+        if (allowMotion.value) return;
+        isHovering = false;
+        stopBreathe();
+        const {button, icon, leftFold, rightFold} = getEls();
+        const els = [button, icon, leftFold, rightFold].filter(Boolean);
+        gsap.killTweensOf(els);
+        if (els.length) gsap.set(els, {clearProps: 'transform,opacity,visibility'});
+    }
+    const stopModeWatch = watch(allowMotion, resetOnDisable, {flush: 'sync'});
+    onUnmounted(() => {
+        stopModeWatch();
+        isHovering = false;
+        stopBreathe();
+        const {button, icon, leftFold, rightFold} = getEls();
+        gsap.killTweensOf([button, icon, leftFold, rightFold].filter(Boolean));
+    });
 
     const handleClick = () => {
         if (props.disabled || props.loading) return;
