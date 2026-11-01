@@ -69,8 +69,9 @@
 import {t} from "../locales";
 import useOrderForm from "../composables/Order.js";
 import {useRoute} from "vue-router";
-import {computed, onMounted, watch, nextTick, ref} from "vue";
+import {computed, onMounted, onUnmounted, watch, nextTick, ref} from "vue";
 import gsap from "gsap";
+import {allowMotion} from "../composables/performance.js";
 import PrivacyModal from "../components/PrivacyPolicy.vue";
 
 const route = useRoute();
@@ -96,33 +97,48 @@ function openPrivacyModal() {
   showPrivacy.value = true;
 }
 
-onMounted(() => {
-  const tl = gsap.timeline({
-    defaults: {opacity: 0, y: 40, duration: 0.5, ease: "power3.out"}
+let entrance = null;
+const activeTweens = new Set();
+function cleanupMotion() {
+  entrance?.kill();entrance = null;
+  for (const tween of activeTweens) tween.kill();
+  activeTweens.clear();
+  const els = [headingSection.value, formWrapper.value, successRef.value].filter(Boolean);
+  if (els.length) {gsap.killTweensOf(els);gsap.set(els, {clearProps: 'transform,opacity,visibility'});}
+  formWrapper.value?.querySelectorAll('input,textarea').forEach(el => {
+    gsap.killTweensOf(el);gsap.set(el, {clearProps: 'transform'});
   });
-
-  tl.from(headingSection.value, {})
-      .from(formWrapper.value, {}, "-=0.3");
-});
+}
+function startMotion() {
+  cleanupMotion();
+  if (!allowMotion.value || !headingSection.value || !formWrapper.value) return;
+  entrance = gsap.timeline({defaults: {duration: .5, ease: 'power3.out'}})
+    .fromTo(headingSection.value, {opacity: .5, y: 30}, {opacity: 1, y: 0, clearProps: 'transform,opacity'})
+    .fromTo(formWrapper.value, {opacity: .5, y: 30}, {opacity: 1, y: 0, clearProps: 'transform,opacity'}, '-=.3');
+}
+onMounted(startMotion);
+onUnmounted(cleanupMotion);
+watch(allowMotion, () => nextTick(startMotion), {flush: 'post'});
 
 watch(successMessage, async (msg) => {
-  if (msg) {
+  if (msg && allowMotion.value) {
     await nextTick();
-    gsap.fromTo(
+    if (!allowMotion.value || !successRef.value) return;
+    activeTweens.add(gsap.fromTo(
         successRef.value,
         {opacity: 0, scale: 0.9},
-        {opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.7)"}
-    );
+        {opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.7)", clearProps: 'transform,opacity'}
+    ));
   }
 });
 
 watch(errorMessage, async (val) => {
-  if (val && invalidFields.value.length) {
+  if (val && allowMotion.value && invalidFields.value.length) {
     await nextTick();
     invalidFields.value.forEach((field) => {
       const el = document.querySelector(`#${field}`);
       if (el) {
-        gsap.fromTo(el, {x: -5}, {x: 5, duration: 0.1, yoyo: true, repeat: 3});
+        activeTweens.add(gsap.fromTo(el, {x: -5}, {x: 5, duration: 0.1, yoyo: true, repeat: 3, clearProps: 'transform'}));
       }
     });
   }

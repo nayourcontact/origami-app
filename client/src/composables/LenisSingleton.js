@@ -2,13 +2,16 @@
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import Lenis from "@studio-freight/lenis";
+import { allowMotion } from "./performance.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
 let lenisInstance = null;
 let tickerAttached = false;
+const tick = time => lenisInstance?.raf(time * 1000);
 
 export function initLenis() {
+    if (!allowMotion.value) return null;
     if (lenisInstance) return lenisInstance;
 
     lenisInstance = new Lenis({
@@ -21,10 +24,7 @@ export function initLenis() {
     lenisInstance.on("scroll", ScrollTrigger.update);
 
     if (!tickerAttached) {
-        gsap.ticker.add((time) => {
-            lenisInstance?.raf(time * 1000);
-        });
-        gsap.ticker.lagSmoothing(0);
+        gsap.ticker.add(tick);
         tickerAttached = true;
     }
 
@@ -36,6 +36,7 @@ export function getLenis() {
 }
 
 export function refreshLenis() {
+    if (!lenisInstance) return;
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             lenisInstance?.resize?.();
@@ -45,7 +46,7 @@ export function refreshLenis() {
 }
 
 export function destroyLenis() {
-    if (!lenisInstance) return;
-    lenisInstance.destroy();
+    if (lenisInstance) lenisInstance.destroy();
     lenisInstance = null;
+    if (tickerAttached) { gsap.ticker.remove(tick); tickerAttached = false; }
 }

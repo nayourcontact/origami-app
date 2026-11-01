@@ -14,6 +14,29 @@
 
       <PrivacyPolicy :show="showPrivacy" @update:show="showPrivacy = $event" />
     </div>
+    <button v-if="!showConsent" type="button" class="visitor-settings-toggle" @click="showPreferences = !showPreferences" aria-label="Megjelenítési beállítások" :aria-expanded="showPreferences">⚙ Beállítások</button>
+    <div v-if="showPreferences && !showConsent" class="visitor-preferences" role="group" aria-label="Megjelenítési beállítások">
+      <div class="visitor-preferences-head"><strong>Megjelenítés</strong><button type="button" @click="showPreferences = false" aria-label="Bezárás">×</button></div>
+      <label for="visitor-motion">Animációk</label>
+      <select id="visitor-motion" :value="performanceProfile" @change="setPerformanceProfile($event.target.value)">
+        <option value="auto">Automatikus</option>
+        <option value="full">Bekapcsolva</option>
+        <option value="lite">Kikapcsolva</option>
+      </select>
+      <small aria-live="polite">{{ performanceProfile === 'auto' ? (automaticLite ? 'A rendszer csökkentett módot választott' : 'A rendszer teljes módot választott') : (allowMotion ? 'Animációk aktívak' : 'Animációk kikapcsolva') }}</small>
+      <small>Ok: {{ performanceReason }}</small>
+      <button type="button" @click="showMetrics = !showMetrics; setPerformanceDiagnostics(showMetrics)">{{ showMetrics ? 'Mérés elrejtése' : 'Teljesítmény mérése' }}</button>
+      <div v-if="showMetrics" class="visitor-motion-metrics" aria-live="off">
+        <div>FPS: <strong>{{ performanceMetrics.fps ?? '–' }}</strong> · Frame p95: {{ performanceMetrics.frameP95 ?? '–' }} ms</div>
+        <div>Long tasks / 4s: {{ performanceMetrics.longTaskMs ?? '–' }} ms</div>
+        <div>JS heap: {{ performanceMetrics.heapUsedMB ?? 'nem támogatott' }} MB / {{ performanceMetrics.heapLimitMB ?? '–' }} MB</div>
+        <div>CPU szálak: {{ performanceCapabilities.cpu ?? 'ismeretlen' }} · RAM: {{ performanceCapabilities.memoryGB ?? 'ismeretlen' }} GB</div>
+        <small>A böngésző CPU %-át nem lehet megbízhatóan kiolvasni; Chrome Performance panellel mérd. A mérés nem fut a háttérben nyitott lapokon.</small>
+        <button type="button" @click="resetAutomaticAssessment">Automatikus felmérés újraindítása</button>
+      </div>
+      <button type="button" class="visitor-cookie-link" @click="showPrivacy = true">Süti- és adatvédelmi tájékoztató</button>
+    </div>
+    <PrivacyPolicy v-if="!showConsent" :show="showPrivacy" @update:show="showPrivacy = $event" />
   </Teleport>
 </template>
 
@@ -22,9 +45,12 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import PrivacyPolicy from './PrivacyPolicy.vue'
 import { t } from '../locales'
+import { allowMotion, automaticLite, performanceProfile, setPerformanceProfile, performanceReason, performanceMetrics, performanceCapabilities, setPerformanceDiagnostics, resetAutomaticAssessment } from '../composables/performance.js'
 
 const showConsent = ref(false)
+const showPreferences = ref(false)
 const showPrivacy = ref(false)
+const showMetrics = ref(false)
 
 const route = useRoute()
 const lang = computed(() => route.params.lang || 'hu')
@@ -140,4 +166,19 @@ const enableOptionalScripts = () => {
 .cookie-decline:hover {
   background-color: #d1d5db;
 }
+</style>
+
+<style scoped>
+.visitor-settings-toggle {position:fixed;right:16px;bottom:16px;z-index:9997;border:1px solid #d4c3ac;background:#fff9f1;color:#372a22;border-radius:22px;padding:9px 13px;box-shadow:0 3px 12px #0002;cursor:pointer;font:12px system-ui,sans-serif}
+.visitor-preferences {position:fixed;right:16px;bottom:61px;z-index:9998;width:min(290px,calc(100vw - 32px));background:#fffaf3;border:1px solid #d4c3ac;border-radius:14px;box-shadow:0 6px 25px #0002;padding:15px;display:grid;gap:10px;color:#32271d;font:13px system-ui,sans-serif}
+.visitor-preferences-head {display:flex;justify-content:space-between;align-items:center}
+.visitor-preferences-head button {border:0;background:transparent;font-size:22px;cursor:pointer;color:inherit}
+.visitor-preferences select {width:100%;padding:9px;border-radius:8px;border:1px solid #bea98e;background:white;color:#32271d}
+.visitor-preferences small {color:#665747}
+.visitor-cookie-link {border:0;text-decoration:underline;text-align:left;background:transparent;padding:4px 0;color:#665747;cursor:pointer}
+</style>
+
+<style scoped>
+.visitor-motion-metrics { font-size: .78rem; line-height: 1.55; border-top: 1px solid #ded7cb; margin-top: .5rem; padding-top: .5rem; }
+.visitor-motion-metrics button { display: block; margin-top: .4rem; }
 </style>

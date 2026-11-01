@@ -107,7 +107,8 @@ import {
 import "../assets/styles/Home.css";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
-import {ref, onMounted, nextTick, watch} from "vue";
+import { allowMotion } from "../composables/performance.js";
+import {ref, onMounted, onUnmounted, nextTick, watch} from "vue";
 import {useRoute} from "vue-router";
 import {t} from "../locales";
 
@@ -120,228 +121,137 @@ const galleryReady = ref(false);
 
 gsap.registerPlugin(ScrollTrigger);
 
-onMounted(async () => {
-  await initBio(currentLanguage);
-  await initNewSixPosts(currentLanguage);
+let disposed = false;
+let activeContext = null;
+let motionVersion = 0;
+let motionCleanups = [];
 
-  galleryReady.value = true;
+function teardownMotion() {
+  motionVersion++;
+  motionCleanups.forEach(fn => fn());
+  motionCleanups = [];
+  activeContext?.revert();
+  activeContext = null;
+}
 
+async function setupMotion() {
+  teardownMotion();
+  if (!allowMotion.value || disposed) return;
+  const version = motionVersion;
   await nextTick();
-
-  animateGallery();
-
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (prefersReducedMotion) {
-    //console.warn("Reduced motion be van kapcsolva, GSAP animációk kikapcsolva.");
-  }
-
-  gsap.set(".bio-origami-shape", {
-    opacity: 0,
-    scale: 0.55,
-    rotate: -28,
-    transformOrigin: "50% 50%"
-  });
-
-  gsap.set(".bio-origami-shape .fold", {
-    rotateX: -70,
-    rotateY: 35,
-    transformOrigin: "50% 50%"
-  });
-
-  const bioTl = gsap.timeline({
-    scrollTrigger: {
-      trigger: viewWrapper.value,
-      start: "top 85%",
-      toggleActions: "play none none none"
+  if (disposed || !allowMotion.value || version !== motionVersion) return;
+  // A context owns only this component's animations/triggers.
+  activeContext = gsap.context(() => {
+    const hero = viewWrapper.value;
+    const intro = introWrapper.value;
+    const gallery = galleryWrapper.value;
+    if (hero) {
+      attachHeroPointer(hero);
+      gsap.fromTo(hero.querySelectorAll('.hero-label, .bio-heading, .hero-subtitle'),
+        {autoAlpha: 1, y: 18},
+        {autoAlpha: 1, y: 0, duration: .65, stagger: .09, ease: 'power2.out', clearProps: 'transform,opacity,visibility'});
     }
-  });
+    if (intro) {
+      gsap.fromTo(intro.querySelectorAll('.intro-kicker, .profile-image-ring, .intro-text-container, .contact-card'),
+        {autoAlpha: 1, y: 16},
+        {autoAlpha: 1, y: 0, stagger: .09, duration: .6, ease: 'power2.out',
+          scrollTrigger: {trigger: intro, start: 'top 90%', once: true},
+          clearProps: 'transform,opacity,visibility'});
+    }
+    if (gallery) {
+      const items = gallery.querySelectorAll('.gallery-item');
+      if (items.length) attachGalleryFocus(gallery, items);
+      if (items.length) gsap.fromTo(items,
+        {autoAlpha: 1, y: 12},
+        {autoAlpha: 1, y: 0, duration: .5, stagger: .06, ease: 'power2.out',
+          clearProps: 'transform,opacity,visibility'});
+    }
+  }, viewWrapper.value?.parentElement || undefined);
+  ScrollTrigger.refresh();
+}
 
-  bioTl
-      .to(".bio-section", {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        filter: "blur(0px)",
-        duration: 1.15,
-        ease: "power4.out"
-      })
-      .fromTo(".hero-label",
-          {opacity: 0, y: 18, filter: "blur(8px)"},
-          {
-            opacity: 1,
-            y: 0,
-            filter: "blur(0px)",
-            letterSpacing: "0.28em",
-            duration: 0.75,
-            ease: "power3.out"
-          },
-          "-=0.7"
-      )
-      .fromTo(".bio-heading",
-          {opacity: 0, y: 22, filter: "blur(10px)"},
-          {
-            opacity: 1,
-            y: 0,
-            filter: "blur(0px)",
-            rotateX: 0,
-            duration: 1,
-            ease: "power4.out"
-          },
-          "-=0.55"
-      )
-      .fromTo(".hero-subtitle",
-          {opacity: 0, y: 14, filter: "blur(8px)"},
-          {
-            opacity: 1,
-            y: 0,
-            filter: "blur(0px)",
-            duration: 0.75,
-            ease: "power3.out"
-          },
-          "-=0.55"
-      )
-      .to(".bio-origami-shape", {
-        opacity: 0.75,
-        scale: 1,
-        stagger: 0.15,
-        duration: 0.8,
-        ease: "back.out(1.8)"
-      }, "-=0.55")
-      .to(".bio-origami-shape .fold", {
-        rotateX: 0,
-        rotateY: 0,
-        stagger: 0.05,
-        duration: 0.9,
-        ease: "power4.out"
-      }, "-=0.65");
-
-  const hero = viewWrapper.value;
-  const heroTitle = hero.querySelector(".bio-heading");
-  const heroLabel = hero.querySelector(".hero-label");
-  const heroSubtitle = hero.querySelector(".hero-subtitle");
-  const shapeOne = hero.querySelector(".shape-one");
-  const shapeTwo = hero.querySelector(".shape-two");
-
-  gsap.set(hero, {
-    transformPerspective: 1200,
-    transformOrigin: "50% 50%"
-  });
-
-  const resetHero = () => {
-    gsap.to(hero, {
-      x: 0,
-      y: 0,
-      rotateX: 0,
-      rotateY: 0,
-      duration: 1.25,
-      ease: "elastic.out(1, 0.45)"
-    });
-
-    gsap.to(heroTitle, {
-      x: 0,
-      y: 0,
-      duration: 1.15,
-      ease: "power4.out"
-    });
-
-    gsap.to([heroLabel, heroSubtitle], {
-      x: 0,
-      y: 0,
-      duration: 1.1,
-      ease: "power4.out"
-    });
-
-    gsap.to(shapeOne, {
-      x: 0,
-      y: 0,
-      rotate: -18,
-      duration: 1.35,
-      ease: "elastic.out(1, 0.5)"
-    });
-
-    gsap.to(shapeTwo, {
-      x: 0,
-      y: 0,
-      rotate: 22,
-      scale: 0.75,
-      duration: 1.35,
-      ease: "elastic.out(1, 0.5)"
+// Pointer effects exist only in full mode. Listeners are removed before context.revert().
+function attachHeroPointer(hero) {
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  const title = hero.querySelector('.bio-heading');
+  const label = hero.querySelector('.hero-label');
+  const subtitle = hero.querySelector('.hero-subtitle');
+  const shapeOne = hero.querySelector('.shape-one');
+  const shapeTwo = hero.querySelector('.shape-two');
+  const ease = 'power3.out';
+  let frame = 0;
+  let position = null;
+  const move = (e) => {
+    position = {x: e.clientX, y: e.clientY};
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      if (!position) return;
+      const rect = hero.getBoundingClientRect();
+      const x = gsap.utils.clamp(-.5, .5, (position.x - rect.left) / rect.width - .5);
+      const y = gsap.utils.clamp(-.5, .5, (position.y - rect.top) / rect.height - .5);
+      gsap.to(hero, {x: x * 3, y: y * 2, rotateX: -y * 4, rotateY: x * 5, duration: .65, overwrite: 'auto', ease});
+      gsap.to(title, {x: x * 14, y: y * 10, duration: .7, overwrite: 'auto', ease});
+      gsap.to(label, {x: x * 6, y: y * 4, duration: .75, overwrite: 'auto', ease});
+      gsap.to(subtitle, {x: x * 8, y: y * 5, duration: .8, overwrite: 'auto', ease});
+      gsap.to(shapeOne, {x: x * -32, y: y * -24, rotate: -18 + x * 8, duration: .9, overwrite: 'auto', ease});
+      gsap.to(shapeTwo, {x: x * 30, y: y * 22, rotate: 22 + x * 7, scale: .75, duration: .9, overwrite: 'auto', ease});
     });
   };
-
-  const handleMouseMove = (e) => {
-    const rect = hero.getBoundingClientRect();
-
-    const x = gsap.utils.clamp(
-        -0.5,
-        0.5,
-        (e.clientX - rect.left) / rect.width - 0.5
-    );
-
-    const y = gsap.utils.clamp(
-        -0.5,
-        0.5,
-        (e.clientY - rect.top) / rect.height - 0.5
-    );
-
-    gsap.to(hero, {
-      x: x * 3,
-      y: y * 2,
-      rotateX: y * -4,
-      rotateY: x * 5,
-      duration: 0.65,
-      overwrite: "auto",
-      ease: "power3.out"
-    });
-
-    gsap.to(heroTitle, {
-      x: x * 14,
-      y: y * 10,
-      duration: 0.7,
-      overwrite: "auto",
-      ease: "power3.out"
-    });
-
-    gsap.to(heroLabel, {
-      x: x * 6,
-      y: y * 4,
-      duration: 0.75,
-      overwrite: "auto",
-      ease: "power3.out"
-    });
-
-    gsap.to(heroSubtitle, {
-      x: x * 8,
-      y: y * 5,
-      duration: 0.8,
-      overwrite: "auto",
-      ease: "power3.out"
-    });
-
-    gsap.to(shapeOne, {
-      x: x * -32,
-      y: y * -24,
-      rotate: -18 + x * 8,
-      duration: 0.9,
-      overwrite: "auto",
-      ease: "power3.out"
-    });
-
-    gsap.to(shapeTwo, {
-      x: x * 30,
-      y: y * 22,
-      rotate: 22 + x * 7,
-      scale: 0.75,
-      duration: 0.9,
-      overwrite: "auto",
-      ease: "power3.out"
-    });
+  const reset = () => {
+    if (frame) cancelAnimationFrame(frame);
+    frame = 0;
+    position = null;
+    gsap.to([hero, title, label, subtitle], {x: 0, y: 0, rotateX: 0, rotateY: 0, duration: .8, overwrite: 'auto', ease});
+    gsap.to(shapeOne, {x: 0, y: 0, rotate: -18, duration: .85, overwrite: 'auto', ease});
+    gsap.to(shapeTwo, {x: 0, y: 0, rotate: 22, scale: .75, duration: .85, overwrite: 'auto', ease});
   };
+  hero.addEventListener('pointermove', move, {passive: true});
+  hero.addEventListener('pointerleave', reset);
+  motionCleanups.push(() => {
+    hero.removeEventListener('pointermove', move);
+    hero.removeEventListener('pointerleave', reset);
+    if (frame) cancelAnimationFrame(frame);
+  });
+}
 
-  hero.addEventListener("mousemove", handleMouseMove);
-  hero.addEventListener("mouseleave", resetHero);
+function attachGalleryFocus(gallery, items) {
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  const handlers = [];
+  items.forEach(item => {
+    const media = item.querySelector('img, video');
+    const enter = () => {
+      gsap.to(items, {opacity: .48, scale: .965, filter: 'blur(2px) saturate(.82)', duration: .35, overwrite: 'auto', ease: 'power3.out'});
+      gsap.to(item, {opacity: 1, scale: 1.075, y: -14, zIndex: 20, filter: 'blur(0px) saturate(1.05)', boxShadow: '0 34px 90px rgba(35,26,20,.18)', duration: .4, overwrite: 'auto', ease: 'power3.out'});
+      if (media) gsap.to(media, {scale: 1.055, duration: .45, overwrite: 'auto', ease: 'power3.out'});
+    };
+    const leave = () => {
+      gsap.to(items, {opacity: 1, scale: 1, y: 0, filter: 'blur(0px) saturate(1)', boxShadow: '0 14px 32px rgba(35,26,20,.07)', duration: .4, overwrite: 'auto', ease: 'power3.out', onComplete: () => items.forEach(el => { el.style.zIndex = ''; })});
+      if (media) gsap.to(media, {scale: 1, duration: .4, overwrite: 'auto', ease: 'power3.out'});
+    };
+    item.addEventListener('pointerenter', enter);
+    item.addEventListener('pointerleave', leave);
+    handlers.push(() => { item.removeEventListener('pointerenter', enter); item.removeEventListener('pointerleave', leave); });
+  });
+  motionCleanups.push(() => handlers.forEach(fn => fn()));
+}
 
-  animateIntro();
+onMounted(async () => {
+  void initBio(currentLanguage);
+  void initNewSixPosts(currentLanguage).then(async () => {
+    if (disposed) return;
+    galleryReady.value = true;
+    await nextTick();
+    if (allowMotion.value) void setupMotion();
+  });
+  await setupMotion();
+});
+
+watch(allowMotion, () => { void setupMotion(); }, {flush: 'post'});
+
+onUnmounted(() => {
+  disposed = true;
+  teardownMotion();
 });
 
 const animateGallery = () => {

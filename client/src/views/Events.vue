@@ -270,6 +270,7 @@ import {API_BASE_URL} from "../config.js";
 import "../assets/styles/Events.css";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
+import { allowMotion } from "../composables/performance.js";
 import {t} from "../locales.js";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -317,18 +318,124 @@ export default {
   },
 
   async mounted() {
+    this._motionContext = null;
+    this._motionVersion = 0;
     await this.fetchEvents();
     await this.$nextTick();
-    this.animateEventsPage();
+    this.setupMotion();
+    this._stopMotionWatch = this.$watch(() => allowMotion.value, () => {
+      this.$nextTick(() => this.setupMotion());
+    });
   },
 
   beforeUnmount() {
-    ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    this._stopMotionWatch?.();
+    this.teardownMotion();
     document.body.style.overflow = "";
   },
 
   methods: {
     t,
+
+    teardownMotion() {
+      this._motionVersion = (this._motionVersion || 0) + 1;
+      (this._motionCleanups || []).forEach(fn => fn());
+      this._motionCleanups = [];
+      this._motionContext?.revert();
+      this._motionContext = null;
+    },
+
+    setupMotion() {
+      this.teardownMotion();
+      if (!allowMotion.value || !this.$refs.page) return;
+      const hero = this.$refs.hero;
+      const list = this.$refs.list;
+      this._motionCleanups = [];
+      this._motionContext = gsap.context(() => {
+        if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+          if (hero) this.attachEventsHeroHover(hero);
+          if (list) this.attachEventsCardHover(list);
+        }
+        if (hero) gsap.fromTo(hero.querySelectorAll('.events-kicker, h1, p'),
+          {autoAlpha: 1, y: 18},
+          {autoAlpha: 1, y: 0, duration: .6, stagger: .09, ease: 'power2.out',
+            clearProps: 'transform,opacity,visibility'});
+        if (list) {
+          const cards = list.querySelectorAll('.event-card');
+          if (cards.length) gsap.fromTo(cards,
+            {autoAlpha: 1, y: 14},
+            {autoAlpha: 1, y: 0, duration: .52, stagger: .06, ease: 'power2.out',
+              clearProps: 'transform,opacity,visibility'});
+        }
+      }, this.$refs.page);
+    },
+
+    attachEventsHeroHover(hero) {
+      const title = hero.querySelector('h1');
+      const kicker = hero.querySelector('.events-kicker');
+      const subtitle = hero.querySelector('p');
+      const large = hero.querySelector('.fold-large');
+      const small = hero.querySelector('.fold-small');
+      const line = hero.querySelector('.fold-line');
+      const targets = [title, kicker, subtitle, large, small, line].filter(Boolean);
+      let raf = 0;
+      let pointer = null;
+      const move = e => {
+        pointer = {x: e.clientX, y: e.clientY};
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          if (!pointer || !hero.isConnected) return;
+          const rect = hero.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          const x = gsap.utils.clamp(-.5, .5, (pointer.x - rect.left) / rect.width - .5);
+          const y = gsap.utils.clamp(-.5, .5, (pointer.y - rect.top) / rect.height - .5);
+          const tween = (target, vars) => { if (target) gsap.to(target, {duration: .65, overwrite: 'auto', ease: 'power3.out', ...vars}); };
+          tween(hero, {x: x * 3, y: y * 2, rotateX: y * -4, rotateY: x * 5});
+          tween(title, {x: x * 14, y: y * 10});
+          tween(kicker, {x: x * 6, y: y * 4});
+          tween(subtitle, {x: x * 8, y: y * 5});
+          tween(large, {x: -x * 32, y: -y * 24, rotation: x * 8});
+          tween(small, {x: x * 30, y: y * 22, rotation: x * 7});
+          tween(line, {x: -x * 18, y: y * 16, rotation: 45 + x * 6});
+        });
+      };
+      const reset = () => {
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+        pointer = null;
+        gsap.to([hero, ...targets], {x: 0, y: 0, rotateX: 0, rotateY: 0, duration: .65, overwrite: 'auto', ease: 'power3.out'});
+        if (large) gsap.to(large, {rotation: 0, duration: .65, overwrite: 'auto'});
+        if (small) gsap.to(small, {rotation: 0, duration: .65, overwrite: 'auto'});
+        if (line) gsap.to(line, {rotation: 45, duration: .65, overwrite: 'auto'});
+      };
+      hero.addEventListener('pointermove', move, {passive: true});
+      hero.addEventListener('pointerleave', reset);
+      this._motionCleanups.push(() => {
+        hero.removeEventListener('pointermove', move);
+        hero.removeEventListener('pointerleave', reset);
+        if (raf) cancelAnimationFrame(raf);
+      });
+    },
+
+    attachEventsCardHover(list) {
+      const cleanups = [];
+      list.querySelectorAll('.event-card').forEach(card => {
+        const media = card.querySelector('.event-cover');
+        const enter = () => {
+          gsap.to(card, {y: -6, scale: 1.012, duration: .4, ease: 'power3.out', overwrite: 'auto'});
+          if (media) gsap.to(media, {scale: 1.045, duration: .55, ease: 'power3.out', overwrite: 'auto'});
+        };
+        const leave = () => {
+          gsap.to(card, {y: 0, scale: 1, duration: .45, ease: 'power3.out', overwrite: 'auto'});
+          if (media) gsap.to(media, {scale: 1, duration: .45, ease: 'power3.out', overwrite: 'auto'});
+        };
+        card.addEventListener('pointerenter', enter);
+        card.addEventListener('pointerleave', leave);
+        cleanups.push(() => {card.removeEventListener('pointerenter', enter); card.removeEventListener('pointerleave', leave);});
+      });
+      this._motionCleanups.push(() => cleanups.forEach(fn => fn()));
+    },
 
     loadDescriptionPreviews(description) {
       const blocks = this.parseDescription(description);
@@ -491,7 +598,8 @@ export default {
 
     setFilter(value) {
       this.filter = value;
-      this.$nextTick(() => this.animateEventCards(true));
+      // Rebuild only our scoped animations after Vue updates the list.
+      this.$nextTick(() => this.setupMotion());
     },
 
     animateEventsPage() {
