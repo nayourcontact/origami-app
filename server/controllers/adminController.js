@@ -9,6 +9,7 @@ const { decrypt } = require("../utils/encryption");
 
 const localesPath = path.join(__dirname, "../../client/src/locales");
 const JWT_SECRET = process.env.JWT_SECRET;
+const { setSessionCookie, clearSessionCookie, getSessionToken, csrfForToken } = require('../utils/adminSession');
 
 const login = async (req, res) => {
     const {email, password} = req.body;
@@ -20,10 +21,21 @@ const login = async (req, res) => {
 
     console.log(`[ADMIN LOGIN] Email: ${email} | IP: ${req.ip} | Idő: ${new Date().toISOString()}`);
     const token = jwt.sign({id: admin._id, role: admin.role}, JWT_SECRET, {
-        expiresIn: "1d"
+        expiresIn: '2h', algorithm: 'HS256'
     });
+    setSessionCookie(req, res, token);
+    res.set('Cache-Control', 'no-store');
+    res.json({role: admin.role, csrfToken: csrfForToken(token)});
+};
 
-    res.json({token, role: admin.role});
+const session = (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.json({authenticated: true, role: req.user.role, csrfToken: csrfForToken(getSessionToken(req))});
+};
+const logout = (req, res) => {
+    clearSessionCookie(req, res);
+    res.set('Cache-Control', 'no-store');
+    res.json({message: 'Kijelentkezve.'});
 };
 
 const register = async (req, res) => {
@@ -197,6 +209,8 @@ const listOrders = async (req, res) => {
 
 module.exports = {
     login,
+    session,
+    logout,
     register,
     updateEmail,
     statusCheck,

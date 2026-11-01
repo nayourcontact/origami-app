@@ -6,6 +6,7 @@
       <button @click="activeTab = 'orders'">📦 Megrendelések</button>
       <button @click="activeTab = 'languageEditor'">🌐 Nyelvi fájlok</button>
       <button @click="activeTab = 'gdprExport'">🗃️ Adatkezelés (GDPR)</button>
+      <button type="button" :disabled="loggingOut" @click="logout">{{ loggingOut ? 'Kijelentkezés...' : '🚪 Kijelentkezés' }}</button>
     </aside>
 
     <main class="dashboard-main">
