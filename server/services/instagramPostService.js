@@ -6,10 +6,7 @@ const { getTokenByUserId } = require('./instagramTokenService');
 
 const INSTAGRAM_MEDIA_FIELDS = 'id,media_type,media_url,thumbnail_url,caption,timestamp';
 
-const BASE_UPLOAD_ROOT =
-    process.platform === 'win32'
-        ? 'C:/origami_app/uploads'
-: '/home/app/origami_app/uploads';
+const { BASE_UPLOAD_ROOT } = require('../utils/uploadPaths');
 
 const STORAGE_ROOT = path.join(BASE_UPLOAD_ROOT, 'instagram');
 

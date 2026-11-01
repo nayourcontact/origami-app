@@ -10,10 +10,7 @@ require('./utils/tokenReminderJob');
 
 const app = express();
 
-const BASE_UPLOAD_ROOT =
-    process.platform === 'win32'
-        ? 'C:/origami_app/uploads'
-        : '/home/app/origami_app/uploads';
+const { BASE_UPLOAD_ROOT } = require('./utils/uploadPaths');
 
 // Middleware
 app.use(helmet({
