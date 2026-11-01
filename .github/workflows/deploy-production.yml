@@ -34,6 +34,8 @@ jobs:
         run: npm ci
       - name: Backend unit and HTTP integration tests
         working-directory: server
+        env:
+          UPLOAD_ROOT: ${{ runner.temp }}/origami-uploads
         run: npm test
       - name: Backend production dependency audit
         working-directory: server

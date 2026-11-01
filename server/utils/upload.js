@@ -2,10 +2,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const BASE_UPLOAD_ROOT =
-    process.platform === "win32"
-        ? "C:/origami_app/uploads"
-        : "/home/app/origami_app/uploads";
+const { BASE_UPLOAD_ROOT } = require("./uploadPaths");
 
 const uploadDir = path.join(BASE_UPLOAD_ROOT, "events");
 
