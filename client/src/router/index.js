@@ -107,9 +107,6 @@ router.beforeEach(async (to, from, next) => {
                 params: {
                     userId: INSTAGRAM_USER_ID
                 },
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
             });
         } catch (err) {
             localStorage.removeItem("adminToken");

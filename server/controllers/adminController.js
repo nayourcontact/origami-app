@@ -70,18 +70,18 @@ const statusCheck = async (req, res) => {
             users: 5,
             jobs: 2,
             tokenInfo: {
-                ...validation,
-                token: tokenData.token,
-                clientSecret: tokenData.clientSecret,
+                configured: true,
+                valid: !!validation.valid,
                 expiresAt: tokenData.expiresAt,
-                updatedAt: tokenData.updatedAt
+                updatedAt: tokenData.updatedAt,
+                ...(validation.valid ? {} : {error: 'A token nem érvényes.'})
             }
         });
     } catch (err) {
         console.error("Status check error:", err);
         res.status(500).json({
             message: "A státusz lekérése nem sikerült.",
-            error: err.message
+            error: 'Belső hiba' 
         });
     }
 };

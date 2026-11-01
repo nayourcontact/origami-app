@@ -16,8 +16,8 @@
         <!-- Token Info -->
         <div v-if="status?.tokenInfo" class="dashboard-card space-y-2">
           <h2 class="dashboard-subtitle">🔐 Token információk</h2>
-          <p>🔑 <strong>Token:</strong> <code class="break-all">{{ formatToken(status.tokenInfo.token) }}</code></p>
-          <p>🧷 <strong>Client Secret:</strong> <code>{{ maskSecret(status.tokenInfo.clientSecret) }}</code></p>
+          <p>🔑 <strong>Token:</strong> {{ status.tokenInfo.configured ? 'Beállítva (rejtett)' : 'Nincs beállítva' }}</p>
+          <p>🧷 <strong>Client Secret:</strong> Kizárólag szerveroldalon tárolva</p>
           <p>⏳ <strong>Lejárat:</strong> <span class="text-blue-600">{{ formatDate(status.tokenInfo.expiresAt) }}</span>
           </p>
 
@@ -49,7 +49,7 @@
             ⚠️ {{ status.tokenInfo.error }}
           </p>
 
-          <p v-else-if="status?.tokenInfo" class="text-green-600">
+          <p v-else-if="status?.tokenInfo?.valid" class="text-green-600">
             ✅ Token érvényes és működik
           </p>
         </div>

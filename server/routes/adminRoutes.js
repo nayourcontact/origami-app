@@ -3,6 +3,7 @@ const { body, param, query, validationResult } = require("express-validator");
 const router = express.Router();
 const adminController = require("../controllers/adminController");
 const auth = require("../utils/authMiddleware");
+const requireAdmin = require("../utils/requireAdmin");
 const loginLimiter = require("../utils/loginLimiter");
 const eventRoutes = require("./eventRoutes");
 
@@ -58,6 +59,7 @@ router.get(
         query("userId").notEmpty().withMessage("A userId megadása kötelező.")
     ],
     handleValidationErrors,
+    requireAdmin,
     adminController.statusCheck
 );
 
